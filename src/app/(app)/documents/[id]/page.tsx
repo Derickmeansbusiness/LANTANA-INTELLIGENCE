@@ -9,11 +9,10 @@ import { fmtDate, fmtDubai, relativeTime } from "@/lib/dates";
 import { label } from "@/lib/schemas/common";
 import { getSession } from "@/server/session";
 import { getDocument, linkTargets, listFolders, SHAREABLE_MIME } from "@/server/documents";
-import { confVariant } from "@/components/documents/documents-view";
+import { confVariant, fmtSize } from "@/components/documents/format";
 import { DocumentActions, IngestPoller, ReingestButton, VersionButtons } from "@/components/documents/document-actions";
 import { Preview } from "@/components/documents/preview";
 import { SharePanel, type ShareRow } from "@/components/documents/share-panel";
-import { fmtSize } from "@/components/documents/upload-dialog";
 
 export async function generateMetadata({ params }: PageProps<"/documents/[id]">): Promise<Metadata> {
   const { id } = await params;

@@ -22,11 +22,11 @@ import { label } from "@/lib/schemas/common";
 import { cn } from "@/lib/utils";
 import { createFolderAction, searchDocumentsAction } from "@/server/actions/documents";
 import type { DocRow, LinkTarget } from "@/server/documents";
-import { UploadDialog, fmtSize } from "./upload-dialog";
+import { UploadDialog } from "./upload-dialog";
+import { confVariant, fmtSize } from "./format";
 
 type SearchHit = { document_id: string; title: string; doc_type: string; status: string; snippet: string | null; matched: string };
 
-export const confVariant = (c: string) => (c === "restricted" ? "danger" : c === "confidential" ? "warning" : c === "public" ? "success" : "outline") as "danger" | "warning" | "success" | "outline";
 
 const columns: ColumnDef<DocRow, unknown>[] = [
   {

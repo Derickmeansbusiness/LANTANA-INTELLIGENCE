@@ -11,19 +11,13 @@ import { FormField } from "@/components/form-field";
 import { createClient } from "@/lib/supabase/client";
 import { safeFileName } from "@/lib/schemas/documents";
 import { cn } from "@/lib/utils";
+import { fmtSize } from "./format";
 import { createDocumentAction, registerVersionAction } from "@/server/actions/documents";
 import type { LinkTarget } from "@/server/documents";
 import { DocMetaFields, EMPTY_META, metaPayload, type DocMeta } from "./meta-fields";
 
 const MAX = 50 * 1024 * 1024;
 const ACCEPT = ".pdf,.docx,.xlsx,.csv,.txt,.md,.png,.jpg,.jpeg,.pptx,.doc,.xls";
-
-export function fmtSize(n: number | null | undefined) {
-  if (n == null) return "—";
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
-  return `${(n / 1024 / 1024).toFixed(1)} MB`;
-}
 
 async function sha256(file: File) {
   const buf = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
