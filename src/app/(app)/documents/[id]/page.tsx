@@ -147,7 +147,7 @@ export default async function DocumentPage({ params }: PageProps<"/documents/[id
                 <Fact label="Folder">{doc.folder?.name ?? "Unfiled"}</Fact>
                 <Fact label="Expires">{doc.expiry_date ? fmtDate(doc.expiry_date) : "—"}</Fact>
                 <Fact label="Added by">{doc.creator?.full_name ?? "—"}</Fact>
-                <Fact label="Added">{fmtDate(doc.created_at)}</Fact>
+                <Fact label="Added">{fmtDubai(doc.created_at, "d MMM yyyy")}</Fact>
               </dl>
               {doc.description && current && <p className="mt-3 text-sm text-muted-foreground">{doc.description}</p>}
               {tags.length > 0 && (

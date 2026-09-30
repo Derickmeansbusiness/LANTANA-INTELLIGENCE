@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { fmtDate } from "@/lib/dates";
+import { fmtDate, fmtDubai } from "@/lib/dates";
 import { formatMoney, toMajor } from "@/lib/money";
 import { RECORD_TYPES, type RecordPreview, type SearchHit } from "@/server/records-shared";
 
@@ -74,7 +74,7 @@ export async function getRecordPreview(type: string, id: string): Promise<Record
           { heading: "Parties", items: (parties ?? []).map((p) => `${(p.org as { name: string } | null)?.name ?? "?"} · ${title(p.role)}`) },
           {
             heading: "Stage history",
-            items: (history ?? []).map((h) => `${(h.stage as { label: string } | null)?.label ?? h.to_stage} · ${fmtDate(h.changed_at.slice(0, 10))}`),
+            items: (history ?? []).map((h) => `${(h.stage as { label: string } | null)?.label ?? h.to_stage} · ${fmtDubai(h.changed_at, "d MMM yyyy")}`),
           },
         ],
         fullPagePhase: 2,
@@ -98,7 +98,7 @@ export async function getRecordPreview(type: string, id: string): Promise<Record
           { label: "Country", value: o.country_info?.name ?? "Multi-country" },
           { label: "Sectors", value: o.sectors.map(title).join(", ") || "—" },
           { label: "Relationship owner", value: o.owner?.full_name ?? "—" },
-          { label: "Last contact", value: o.last_contact_at ? fmtDate(o.last_contact_at.slice(0, 10)) : "—" },
+          { label: "Last contact", value: o.last_contact_at ? fmtDubai(o.last_contact_at, "d MMM yyyy") : "—" },
         ],
         notes: o.description,
         lists: [{ heading: "Contacts", items: (contacts ?? []).map((c) => c.full_name + (c.job_title ? ` · ${c.job_title}` : "")) }],
