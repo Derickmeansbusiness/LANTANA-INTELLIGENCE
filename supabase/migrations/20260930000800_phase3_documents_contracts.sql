@@ -19,17 +19,29 @@ end $$;
 -- ---------------------------------------------------------------------------
 -- Document visibility, shared by table and storage policies
 -- ---------------------------------------------------------------------------
--- Staff also see non-restricted documents linked to a deal they're on.
+-- Who may see a document, from its own columns: manager+; anyone internal for
+-- public/internal files; the uploader; and staff for non-restricted files linked
+-- to a deal they're on. The policy below takes columns (not a re-query by id)
+-- so INSERT ... RETURNING sees the row it just wrote.
+create or replace function private.doc_linked_to_visible_deal(p_doc uuid)
+returns boolean language sql stable security definer set search_path = '' as $$
+  select exists (select 1 from public.document_links l
+                 where l.document_id = p_doc and l.entity_type = 'deal' and private.can_see_deal(l.entity_id))
+$$;
+
+create or replace function private.doc_visible(p_doc uuid, p_conf text, p_creator uuid)
+returns boolean language sql stable security definer set search_path = '' as $$
+  select private.is_manager_plus()
+      or (private.is_internal() and (
+            p_conf in ('public', 'internal')
+         or p_creator = auth.uid()
+         or (p_conf <> 'restricted' and private.doc_linked_to_visible_deal(p_doc))))
+$$;
+
 create or replace function private.can_see_document(p_doc uuid)
 returns boolean language sql stable security definer set search_path = '' as $$
-  select exists (
-    select 1 from public.documents d
-    where d.id = p_doc
-      and (private.is_manager_plus()
-           or (private.is_internal() and d.confidentiality in ('public', 'internal'))
-           or (private.is_internal() and d.confidentiality <> 'restricted'
-               and exists (select 1 from public.document_links l
-                           where l.document_id = d.id and l.entity_type = 'deal' and private.can_see_deal(l.entity_id)))))
+  select exists (select 1 from public.documents d
+                 where d.id = p_doc and private.doc_visible(d.id, d.confidentiality::text, d.created_by))
 $$;
 
 -- Writing a new version: must see it, not be locked by someone else, and be
@@ -45,7 +57,8 @@ returns boolean language sql stable security definer set search_path = '' as $$
 $$;
 
 drop policy doc_read on public.documents;
-create policy doc_read on public.documents for select to authenticated using (private.can_see_document(id));
+create policy doc_read on public.documents for select to authenticated
+  using (private.doc_visible(id, confidentiality::text, created_by));
 
 -- ---------------------------------------------------------------------------
 -- Storage

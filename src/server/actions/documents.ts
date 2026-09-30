@@ -91,3 +91,9 @@ export async function revokeShareAction(documentId: string, id: string) {
   if (r.ok) refresh(documentId);
   return r;
 }
+
+export async function createFolderAction(name: string, parentId: string | null) {
+  const r = await docs.createFolder(await createClient(), name, parentId);
+  if (r.ok) refresh();
+  return r;
+}

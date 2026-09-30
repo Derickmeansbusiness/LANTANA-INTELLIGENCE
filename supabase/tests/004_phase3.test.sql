@@ -2,7 +2,7 @@
 -- versions + check-out, share links, obligations → tasks, expiry alerts.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(35);
+select plan(38);
 
 create or replace function pg_temp.login(p_sub text)
 returns void language plpgsql as $$
@@ -30,6 +30,19 @@ select throws_ok(
 select throws_ok(
   $$insert into storage.objects (bucket_id, name) values ('documents', 'not-a-uuid/v1/x.pdf')$$,
   '42501', null, 'storage rejects paths that are not a document id');
+reset role;
+
+-- INSERT ... RETURNING must see the new row (the app relies on it).
+select pg_temp.login(:staff);
+select isnt_empty($$insert into public.documents (title, doc_type, confidentiality, status)
+                    values ('Staff site visit notes', 'other', 'confidential', 'draft') returning id$$,
+                  'staff can create a confidential document and read it back');
+select ok(exists (select 1 from public.documents where title = 'Staff site visit notes'), 'the uploader keeps sight of it');
+reset role;
+select pg_temp.login(:manager);
+select isnt_empty($$insert into public.documents (title, doc_type, confidentiality, status)
+                    values ('Manager memo', 'letter', 'restricted', 'draft') returning id$$,
+                  'manager insert returning works');
 reset role;
 
 -- --------------------------------------------------- versions + checkout

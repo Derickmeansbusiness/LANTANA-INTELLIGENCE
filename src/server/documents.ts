@@ -130,6 +130,8 @@ export async function getDocument(db: Db, id: string) {
     links: resolved,
     tags: (tags.data ?? []).map((t) => t.tag).filter(Boolean) as { id: string; name: string }[],
     shares: shares.data ?? [],
+    /** Server clock, so share status is computed once per request. */
+    asOf: Date.now(),
   };
 }
 
@@ -355,4 +357,30 @@ export async function revokeShare(db: Db, id: string): Promise<ActionResult> {
   const { data, error } = await db.from("document_share_links").update({ revoked_at: new Date().toISOString() }).eq("id", id).select("id");
   if (error) return fail(error);
   return data?.length ? ok(undefined) : fail("Link not found or you can't revoke it.");
+}
+
+export type LinkTarget = { entity_type: "deal" | "organization" | "contract" | "project"; entity_id: string; name: string };
+
+/** Everything the caller may link a document to (RLS trims each list). */
+export async function linkTargets(db: Db): Promise<LinkTarget[]> {
+  const [deals, orgs, contracts, projects] = await Promise.all([
+    db.from("deals").select("id, name").is("deleted_at", null).order("name"),
+    db.from("organizations").select("id, name").is("deleted_at", null).order("name"),
+    db.from("contracts").select("id, title").is("deleted_at", null).order("title"),
+    db.from("projects").select("id, name").is("deleted_at", null).order("name"),
+  ]);
+  return [
+    ...(deals.data ?? []).map((r) => ({ entity_type: "deal" as const, entity_id: r.id, name: r.name })),
+    ...(orgs.data ?? []).map((r) => ({ entity_type: "organization" as const, entity_id: r.id, name: r.name })),
+    ...(contracts.data ?? []).map((r) => ({ entity_type: "contract" as const, entity_id: r.id, name: r.title })),
+    ...(projects.data ?? []).map((r) => ({ entity_type: "project" as const, entity_id: r.id, name: r.name })),
+  ];
+}
+
+export async function createFolder(db: Db, name: string, parentId: string | null): Promise<ActionResult<{ id: string }>> {
+  const n = name.trim();
+  if (n.length < 2 || n.length > 80) return fail("Folder names are 2–80 characters.");
+  const { data, error } = await db.from("folders").insert({ name: n, parent_id: parentId }).select("id").single();
+  if (error) return fail(error.code === "42501" ? "Only a manager or principal can create folders." : error);
+  return ok({ id: data.id });
 }

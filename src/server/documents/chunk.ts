@@ -15,7 +15,10 @@ export function chunkText(text: string, size = 1200, overlap = 200): string[] {
     let buf = "";
     for (const sentence of para.split(/(?<=[.!?;:])\s+/)) {
       if (sentence.length > size) {
-        if (buf) pieces.push(buf), (buf = "");
+        if (buf) {
+          pieces.push(buf);
+          buf = "";
+        }
         for (let i = 0; i < sentence.length; i += size - overlap) pieces.push(sentence.slice(i, i + size));
       } else if ((buf + " " + sentence).length > size) {
         pieces.push(buf);
