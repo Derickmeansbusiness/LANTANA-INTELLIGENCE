@@ -1,6 +1,6 @@
 # Lantana Command: build plan
 
-Status: **draft, waiting for approval.** Nothing gets built until you've signed off on this and answered the open questions in §10.
+Status: **approved 2026-09-29 ("approve all": every §10 question takes the recommended option).** Phase 1 is complete. Deviations found during the build are logged in `CLAUDE.md` → Decisions log.
 
 This is my restatement of the brief. Where I changed something, I say what and why. Where the brief leaves a real decision open, I've listed it as a question and haven't guessed.
 
@@ -159,7 +159,7 @@ Changes from the brief's list: `users`/`roles` become `profiles` + an enum (Supa
 - `notifications`, `saved_views`, `reports`, ➕ `report_schedules`
 - `agent_threads` (optional pin to entity), `agent_messages`, `agent_actions` (proposed/confirmed/executed/rejected/failed, payload, before/after, executed_at), ➕ `agent_usage` (tokens per call)
 - `audit_log`, ➕ `activity_events`
-- ➕ `kpi_snapshots`: one row per day per KPI, written by pg_cron. Sparklines and period deltas need history, and you can't reliably rebuild "pipeline value on 3 August" from current rows.
+- ~~`kpi_snapshots`~~ **Changed in Phase 1:** KPIs are rebuilt from history (stage history, task completion, dated transactions), which respects RLS per viewer. The only gap is that ticket-size edits aren't versioned.
 - ➕ `data_rooms`, ➕ `data_room_members`, ➕ `data_room_documents` (Phase 6)
 
 **Views**
