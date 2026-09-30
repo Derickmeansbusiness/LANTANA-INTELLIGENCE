@@ -161,3 +161,78 @@ test.describe("staff · templates", () => {
     await expect(page.getByText("Only a manager or principal can use this template.")).toBeVisible();
   });
 });
+
+test.describe.serial("manager · contracts register", () => {
+  test.use({ storageState: authFile("manager") });
+  let url = "";
+
+  test("register lists the demo contracts and flags the abolished forum", async ({ page }) => {
+    await page.goto("/contracts");
+    await expect(page.getByRole("heading", { level: 1, name: "Contracts" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "NCNDA — PJM Advisory" })).toBeVisible();
+    await page.getByRole("link", { name: "Mandate & Non-Circumvention — Faminas Investment Group" }).click();
+    await expect(page.getByText("Forum names DIFC-LCIA, abolished in 2021")).toBeVisible();
+    await expect(page.getByText("Last day to give 30-day notice")).toBeVisible();
+    await expect(page.getByRole("button", { name: "AI clause review" })).toBeDisabled();
+  });
+
+  test("create a contract, add an obligation that becomes a task, add a survival clause", async ({ page }) => {
+    await page.goto("/contracts");
+    await page.getByRole("button", { name: "New contract" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Title").fill(`Engagement — Ministry of Agriculture ${run}`);
+    await dialog.getByLabel("Type").selectOption({ label: "Engagement" });
+    await dialog.getByLabel("Status").selectOption({ label: "Active" });
+    await dialog.getByLabel("Effective date").fill("2026-07-01");
+    await dialog.getByLabel("Term (months)").fill("6");
+    await expect(dialog.getByLabel("End of current term")).toHaveValue("2027-01-01");
+    await dialog.getByLabel("Renewal").selectOption({ label: "Renews automatically" });
+    await dialog.getByRole("button", { name: "Add contract" }).click();
+    await expect(dialog.getByText("Auto-renewing contracts need a notice period")).toBeVisible();
+    await dialog.getByLabel("Notice period (days)").fill("60");
+    await dialog.getByRole("button", { name: "Add contract" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: `Engagement — Ministry of Agriculture ${run}` })).toBeVisible();
+    url = page.url();
+    await expect(page.getByText("Last day to give 60-day notice")).toBeVisible();
+    await expect(page.getByText("No signed copy in the vault")).toBeVisible();
+
+    await page.getByRole("button", { name: "Add obligation" }).click();
+    await page.getByLabel("Obligation", { exact: true }).fill(`Deliver the fertilizer supply study ${run}`);
+    await page.getByLabel("Due date").fill("2026-11-15");
+    await page.getByRole("button", { name: "Add obligation" }).click();
+    await expect(page.getByText("Obligation added and a task created for it")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Task", exact: true })).toBeVisible();
+
+    await page.getByLabel("Surviving clause").fill("Confidentiality");
+    await page.getByLabel("Months").fill("12");
+    await page.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(page.getByText(/lapses 1 Jan 2028/)).toBeVisible();
+
+    await page.goto("/tasks?view=list");
+    await expect(page.getByText(`Obligation: Deliver the fertilizer supply study ${run}`).first()).toBeVisible();
+  });
+
+  test("closing an obligation closes its task", async ({ page }) => {
+    await page.goto(url);
+    await page.getByRole("button", { name: `Mark done: Deliver the fertilizer supply study ${run}` }).click();
+    await expect(page.getByText("Done", { exact: true })).toBeVisible();
+    await page.getByRole("link", { name: "Task", exact: true }).click();
+    await expect(page.getByRole("dialog").getByLabel("Status")).toHaveValue("done");
+  });
+
+  test("run expiry alerts from settings", async ({ page }) => {
+    await page.goto("/settings");
+    await page.getByRole("button", { name: "Run expiry alerts now" }).click();
+    await expect(page.getByText(/alerts? sent|Nothing new is due/)).toBeVisible();
+  });
+});
+
+test.describe("staff · contracts register", () => {
+  test.use({ storageState: authFile("staff") });
+  test("is not reachable", async ({ page }) => {
+    await page.goto("/contracts");
+    await expect(page.getByText(/not found|doesn.t exist/i).first()).toBeVisible();
+    await page.goto("/contracts/e0000000-0000-4000-8000-000000000001");
+    await expect(page.getByText(/not found|doesn.t exist/i).first()).toBeVisible();
+  });
+});

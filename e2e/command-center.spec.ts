@@ -53,7 +53,7 @@ test.describe("principal", () => {
     await page.getByPlaceholder(/Search deals/).fill("contracts");
     await page.getByRole("option", { name: "Contracts", exact: true }).click();
     await expect(page).toHaveURL(/\/contracts$/);
-    await expect(page.getByRole("heading", { name: "Arrives in Phase 3" }).filter({ visible: true })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Contracts" })).toBeVisible();
   });
 
   test("date range changes the KPI period", async ({ page }) => {
@@ -71,7 +71,7 @@ test.describe("principal", () => {
   });
 
   test("every module page renders", async ({ page }) => {
-    for (const path of ["/documents", "/contracts", "/people", "/finance", "/compliance", "/reports", "/agent"]) {
+    for (const path of ["/people", "/finance", "/compliance", "/reports", "/agent"]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { name: /Arrives in Phase \d/ }).filter({ visible: true })).toBeVisible();
     }

@@ -14,6 +14,8 @@ const FULL_PAGE: Partial<Record<RecordPreview["type"], (r: RecordPreview) => str
   deal: (r) => `/deals/${r.id}`,
   organization: (r) => `/partners/${r.id}`,
   contact: (r) => `/partners?tab=contacts&q=${encodeURIComponent(r.title)}`,
+  document: (r) => `/documents/${r.id}`,
+  contract: (r) => `/contracts/${r.id}`,
 };
 
 /**

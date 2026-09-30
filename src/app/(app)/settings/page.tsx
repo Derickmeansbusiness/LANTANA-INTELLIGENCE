@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fmtDubai } from "@/lib/dates";
 import { getSession } from "@/server/session";
 import { WipeDemo } from "./wipe-demo";
+import { RunAlerts } from "./run-alerts";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -97,6 +98,21 @@ export default async function SettingsPage() {
             </ul>
           </CardContent>
         </Card>
+
+        {session.isManagerPlus && (
+          <Card>
+            <CardHeader>
+              <div>
+                <CardTitle>Expiry alerts</CardTitle>
+                <CardDescription>
+                  Runs every day at 07:15 Dubai: contract ends, notice deadlines, survival periods, document expiries and confirmed compliance dates, at 90, 60, 30
+                  and 7 days. Each alert goes out once per threshold.
+                </CardDescription>
+              </div>
+              <RunAlerts />
+            </CardHeader>
+          </Card>
+        )}
 
         {session.isManagerPlus && (
           <Card>
