@@ -2,7 +2,7 @@
 -- versions + check-out, share links, obligations → tasks, expiry alerts.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(31);
+select plan(35);
 
 create or replace function pg_temp.login(p_sub text)
 returns void language plpgsql as $$
@@ -88,6 +88,9 @@ select is((select storage_path from public.open_share_link('test-token-abcdefghi
 select is((select reason from public.open_share_link('test-token-abcdefghijklmnop')), 'limit', 'max views is enforced');
 select is((select count(*)::int from public.open_share_link('wrong-token-abcdefghijklmnop')), 0, 'unknown token returns nothing');
 select throws_ok($$select * from public.documents$$, '42501', null, 'anon still cannot read tables');
+select ok(private.share_object_open(:doc_fam || '/v1/mandate.pdf'), 'anon storage window opens for the viewed object');
+select ok(not private.share_object_open(:doc_fam || '/v0/other.pdf'), 'and for no other object');
+select throws_ok($$select private.is_manager_plus()$$, '42501', null, 'anon cannot call other private helpers');
 reset role;
 select is((select count(*)::int from public.document_share_views v join public.document_share_links l on l.id = v.link_id
            where l.recipient_name = 'Faminas legal'), 3, 'every attempt is logged, including refused ones');
@@ -99,6 +102,7 @@ select throws_ok($$update public.document_share_links set revoked_at = null wher
 reset role;
 set local role anon;
 select is((select reason from public.open_share_link('test-token-abcdefghijklmnop')), 'revoked', 'revoked links refuse');
+select ok(not private.share_object_open(:doc_fam || '/v1/mandate.pdf'), 'revoking closes the storage window at once');
 reset role;
 
 select pg_temp.login(:manager);

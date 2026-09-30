@@ -67,7 +67,7 @@ export function DataTable<T>({
   toolbarExtra,
   initialSearch = "",
 }: {
-  module: "deals" | "partners" | "contacts" | "tasks" | "ledger";
+  module: "deals" | "partners" | "contacts" | "tasks" | "ledger" | "documents" | "contracts";
   columns: ColumnDef<T, unknown>[];
   data: T[];
   facets?: Facet[];

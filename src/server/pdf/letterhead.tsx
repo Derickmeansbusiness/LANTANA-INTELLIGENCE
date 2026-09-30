@@ -27,19 +27,9 @@ export const base = StyleSheet.create({
   footer: { position: "absolute", bottom: 22, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", fontSize: 7, color: MUTED, borderTopWidth: 0.5, borderTopColor: GOLD_SOFT, paddingTop: 6 },
 });
 
-const REPLACEMENTS: [RegExp, string][] = [
-  [/↔/g, "<->"],
-  [/→/g, "->"],
-  [/₦/g, "NGN "],
-  [/[  ]/g, " "],
-];
+import { pdfText } from "./text";
 
-/** Keep text inside the WinAnsi set the standard PDF fonts can draw. */
-export function pdfText(s: string | null | undefined) {
-  let out = s ?? "";
-  for (const [re, rep] of REPLACEMENTS) out = out.replace(re, rep);
-  return out.replace(/[^\u0009\u000A\u000D -~ -ÿ–—‘’“”•…€]/g, "?");
-}
+export { pdfText };
 
 export function Letterhead({ address }: { address: string[] }) {
   return (

@@ -521,3 +521,30 @@ revoke execute on all functions in schema private from public, anon;
 grant execute on all functions in schema private to authenticated, service_role;
 revoke execute on function private.pii_key() from authenticated;
 revoke execute on function private.run_expiry_alerts(date) from authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Public share viewer: a two-minute read window, no service-role key.
+-- anon may read one stored object only right after open_share_link() logged
+-- a successful view of the version stored at that exact path. The path holds
+-- two random UUIDs and is never sent to the browser: the server streams it.
+-- ---------------------------------------------------------------------------
+create or replace function private.share_object_open(p_name text)
+returns boolean language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1
+    from public.document_share_views sv
+    join public.document_share_links l on l.id = sv.link_id
+    join public.document_versions v on v.id = l.version_id
+    where v.storage_path = p_name
+      and sv.outcome = 'ok'
+      and sv.viewed_at > now() - interval '2 minutes'
+      and l.revoked_at is null
+      and l.expires_at > now())
+$$;
+
+grant usage on schema private to anon;
+revoke execute on function private.share_object_open(text) from public;
+grant execute on function private.share_object_open(text) to anon, authenticated;
+
+create policy lantana_docs_share_read on storage.objects for select to anon
+  using (bucket_id = 'documents' and private.share_object_open(name));

@@ -6,7 +6,7 @@ import { fail, ok, type ActionResult } from "@/lib/action-result";
 import type { Json } from "@/lib/db/types";
 import type { SavedView } from "@/components/data-table/types";
 
-const moduleSchema = z.enum(["deals", "partners", "contacts", "tasks", "ledger"]);
+const moduleSchema = z.enum(["deals", "partners", "contacts", "tasks", "ledger", "documents", "contracts"]);
 
 export async function listViews(module: string): Promise<SavedView[]> {
   const m = moduleSchema.safeParse(module);

@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PUBLIC_PATHS = ["/login", "/auth"];
+// /s: public share-link viewer (token-gated in the database, see open_share_link).
+const PUBLIC_PATHS = ["/login", "/auth", "/s"];
 
 /**
  * Refreshes the Supabase session cookie on every request and sends signed-out

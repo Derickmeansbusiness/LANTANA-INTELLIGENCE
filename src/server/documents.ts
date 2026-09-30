@@ -1,7 +1,8 @@
 import "server-only";
 import type { Db } from "@/lib/supabase/server";
 import { fail, fieldErrors, ok, type ActionResult } from "@/lib/action-result";
-import { documentSchema, versionSchema } from "@/lib/schemas/documents";
+import { createHash, randomBytes } from "node:crypto";
+import { documentSchema, shareSchema, versionSchema } from "@/lib/schemas/documents";
 import { chunkText } from "./documents/chunk";
 import { extractText } from "./documents/extract";
 import { ocrAvailable, ocrWithClaude } from "./documents/ocr";
@@ -310,4 +311,48 @@ export async function versionUrl(db: Db, versionId: string, mode: "view" | "down
   if (error || !data) return fail("Couldn't prepare the file. Try again.");
   await db.rpc("log_event", { p_action: mode === "download" ? "download" : "view", p_table: "documents", p_row_id: v.document_id, p_context: { version_id: v.id } });
   return ok({ url: data.signedUrl });
+}
+
+/** Only formats we can watermark may leave the building. */
+export const SHAREABLE_MIME = ["application/pdf", "image/png", "image/jpeg"];
+
+/**
+ * Create a share link for the document's current version. The raw token is
+ * returned once and never stored: the database keeps its sha256 only.
+ */
+export async function createShare(db: Db, input: unknown): Promise<ActionResult<{ token: string; expiresAt: string }>> {
+  const p = shareSchema.safeParse(input);
+  if (!p.success) return { ok: false, error: "Check the highlighted fields.", fieldErrors: fieldErrors(p.error.issues) };
+  const { data: doc } = await db
+    .from("documents")
+    .select("id, current:document_versions!documents_current_version_fk(id, mime_type)")
+    .eq("id", p.data.documentId)
+    .maybeSingle<{ id: string; current: { id: string; mime_type: string | null } | null }>();
+  if (!doc) return fail("Document not found.");
+  if (!doc.current) return fail("Upload a file before sharing.");
+  if (!SHAREABLE_MIME.includes(doc.current.mime_type ?? "")) {
+    return fail("Only PDFs and images can be shared, because only those can be watermarked. Export a PDF first.");
+  }
+  const token = randomBytes(32).toString("base64url");
+  const expiresAt = new Date(Date.now() + p.data.days * 86_400_000).toISOString();
+  const { error } = await db.from("document_share_links").insert({
+    document_id: doc.id,
+    version_id: doc.current.id,
+    token_hash: createHash("sha256").update(token).digest("hex"),
+    recipient_name: p.data.recipientName,
+    recipient_email: p.data.recipientEmail ?? null,
+    expires_at: expiresAt,
+    max_views: p.data.maxViews,
+  });
+  if (error) {
+    if (error.code === "42501") return fail("You can't share this document. Restricted documents need a principal.");
+    return fail(error);
+  }
+  return ok({ token, expiresAt });
+}
+
+export async function revokeShare(db: Db, id: string): Promise<ActionResult> {
+  const { data, error } = await db.from("document_share_links").update({ revoked_at: new Date().toISOString() }).eq("id", id).select("id");
+  if (error) return fail(error);
+  return data?.length ? ok(undefined) : fail("Link not found or you can't revoke it.");
 }
