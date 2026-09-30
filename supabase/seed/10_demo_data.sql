@@ -1,0 +1,448 @@
+-- Demo business data. Every row is is_demo = true and can be removed with
+-- Settings → Wipe demo data (public.wipe_demo_data).
+--
+-- Parties, agreement terms and flags come from the brief. Project names,
+-- ticket sizes, dates and finance figures are illustrative placeholders.
+-- All dates are relative to today so the demo never goes stale.
+--
+-- Principals are looked up by full_name, so this file also works on a hosted
+-- project once the two principal accounts exist. The test manager/staff
+-- accounts are optional.
+
+create or replace function pg_temp.act(p_user uuid, p_at timestamptz)
+returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims',
+                     json_build_object('sub', p_user, 'role', 'authenticated')::text, false);
+  perform set_config('app.occurred_at', p_at::text, false);
+end $$;
+
+do $$
+declare
+  m uuid := (select id from public.profiles where full_name = 'Maimouna Baba Danpullo' limit 1);
+  f uuid := (select id from public.profiles where full_name = 'Fai Shey Derick' limit 1);
+  s uuid := (select id from public.profiles where role = 'staff' and email like '%@lantana.test' limit 1);
+  t0 timestamptz := now();
+  d0 date := private.today_dubai();
+
+  -- organizations
+  o_pjm uuid := 'a0000000-0000-4000-8000-000000000001';
+  o_fam uuid := 'a0000000-0000-4000-8000-000000000002';
+  o_gs  uuid := 'a0000000-0000-4000-8000-000000000003';
+  o_fai uuid := 'a0000000-0000-4000-8000-000000000004';
+  o_mau uuid := 'a0000000-0000-4000-8000-000000000005';
+  o_dla uuid := 'a0000000-0000-4000-8000-000000000006';
+  o_rak uuid := 'a0000000-0000-4000-8000-000000000007';
+  c_pat uuid := 'a1000000-0000-4000-8000-000000000001';
+
+  -- deals
+  d_mau uuid := 'd0000000-0000-4000-8000-000000000001';
+  d_dod uuid := 'd0000000-0000-4000-8000-000000000002';
+  d_mor uuid := 'd0000000-0000-4000-8000-000000000003';
+  d_dar uuid := 'd0000000-0000-4000-8000-000000000004';
+  d_dla uuid := 'd0000000-0000-4000-8000-000000000005';
+  d_lag uuid := 'd0000000-0000-4000-8000-000000000006';
+  d_kgl uuid := 'd0000000-0000-4000-8000-000000000007';
+
+  -- contracts & documents
+  k_pjm uuid := 'e0000000-0000-4000-8000-000000000001';
+  k_fam uuid := 'e0000000-0000-4000-8000-000000000002';
+  k_fai uuid := 'e0000000-0000-4000-8000-000000000003';
+  k_rak uuid := 'e0000000-0000-4000-8000-000000000004';
+  fo_agr uuid := 'f1000000-0000-4000-8000-000000000001';
+  fo_cor uuid := 'f1000000-0000-4000-8000-000000000002';
+  fo_crp uuid := 'f1000000-0000-4000-8000-000000000003';
+  fo_pre uuid := 'f1000000-0000-4000-8000-000000000004';
+  doc_pjm uuid := 'f0000000-0000-4000-8000-000000000001';
+  doc_fam uuid := 'f0000000-0000-4000-8000-000000000002';
+  doc_fai uuid := 'f0000000-0000-4000-8000-000000000003';
+  doc_mau uuid := 'f0000000-0000-4000-8000-000000000004';
+  doc_rak uuid := 'f0000000-0000-4000-8000-000000000005';
+  doc_pre uuid := 'f0000000-0000-4000-8000-000000000006';
+
+  p_mau uuid := 'b1000000-0000-4000-8000-000000000001';
+  p_cor uuid := 'b1000000-0000-4000-8000-000000000002';
+
+  fam_end date := d0 + 42;      -- Faminas mandate: current term end
+  rak_end date := d0 + 60;      -- co-working lease end
+  bank uuid := 'ba000000-0000-4000-8000-000000000001';
+  acc record;
+  i integer;
+begin
+  if m is null or f is null then
+    raise notice 'Principal profiles not found; skipping demo data.';
+    return;
+  end if;
+
+  -- -------------------------------------------------------------------------
+  -- FX (floating rates are demo values; pegs live in the migration)
+  -- -------------------------------------------------------------------------
+  insert into public.fx_rates (rate_date, base, quote, rate, source, is_demo) values
+    ('2025-01-01', 'EUR', 'AED', 4.3000000000, 'demo', true),
+    ('2025-01-01', 'GBP', 'AED', 4.9500000000, 'demo', true),
+    ('2025-01-01', 'XAF', 'AED', 0.0065553687, 'demo', true),  -- EUR/655.957
+    ('2025-01-01', 'XOF', 'AED', 0.0065553687, 'demo', true),
+    ('2025-01-01', 'TZS', 'AED', 0.0014990000, 'demo', true),
+    ('2025-01-01', 'NGN', 'AED', 0.0023690000, 'demo', true),
+    ('2025-01-01', 'KES', 'AED', 0.0284500000, 'demo', true),
+    ('2025-01-01', 'MRU', 'AED', 0.0922700000, 'demo', true),
+    ('2025-01-01', 'ZAR', 'AED', 0.2050000000, 'demo', true);
+
+  -- -------------------------------------------------------------------------
+  -- Organizations & contacts
+  -- -------------------------------------------------------------------------
+  perform pg_temp.act(m, t0 - interval '420 days');
+  insert into public.organizations (id, name, type, country, regions_of_interest, sectors, description, relationship_owner_id, linked_profile_id, is_demo, created_at) values
+    (o_fai, 'Fai Shey Derick', 'introducer', null, '{africa}', '{agriculture,energy,education}',
+     'Individual introducer (personal network). Also a Lantana principal: introductions and fee attribution are tracked separately under the NCNDA.',
+     m, f, true, t0 - interval '420 days');
+
+  perform pg_temp.act(m, t0 - interval '305 days');
+  insert into public.organizations (id, name, type, country, sectors, description, relationship_owner_id, is_demo, created_at) values
+    (o_rak, 'RAKEZ (Ras Al Khaimah Economic Zone)', 'government', 'AE', '{}',
+     'Licensing authority and co-working landlord.', f, true, t0 - interval '305 days');
+
+  perform pg_temp.act(f, t0 - interval '300 days');
+  insert into public.organizations (id, name, type, country, sectors, description, relationship_owner_id, is_demo, created_at) values
+    (o_pjm, 'PJM Advisory', 'strategic_partner', 'TZ', '{agriculture,energy,infrastructure,real_estate}',
+     'Tanzania project origination partner. Fees per project, agreed at SPV stage.', f, true, t0 - interval '300 days');
+  insert into public.contacts (id, organization_id, full_name, country, is_demo, created_at)
+  values (c_pat, o_pjm, 'Patrick Joseph Muwowo', 'TZ', true, t0 - interval '300 days');
+
+  perform pg_temp.act(m, t0 - interval '323 days');
+  insert into public.organizations (id, name, type, country, regions_of_interest, sectors, ticket_min_minor, ticket_max_minor, ticket_currency, description, relationship_owner_id, is_demo, created_at) values
+    (o_fam, 'Faminas Investment Group', 'investor', null, '{africa}', '{agriculture,energy,infrastructure,industry}',
+     500000000, 5000000000, 'USD',
+     'Africa-wide investor. Non-exclusive mandate; fees agreed deal by deal. Ticket range is a demo estimate.',
+     m, true, t0 - interval '323 days');
+
+  perform pg_temp.act(m, t0 - interval '80 days');
+  insert into public.organizations (id, name, type, country, sectors, description, relationship_owner_id, is_demo, created_at) values
+    (o_gs, 'Global Sphere', 'supplier', 'AE', '{commodities,agriculture}',
+     'UAE fertilizer producer (urea, NPK, DAP). Strategic supply partner.', m, true, t0 - interval '80 days'),
+    (o_mau, 'Ministry of Agriculture and Food Sovereignty, Mauritania', 'government', 'MR', '{agriculture,commodities}',
+     'Fertilizer supply proposal sent.', m, true, t0 - interval '80 days');
+
+  perform pg_temp.act(m, t0 - interval '200 days');
+  insert into public.organizations (id, name, type, country, sectors, description, relationship_owner_id, is_demo, created_at) values
+    (o_dla, 'Douala Agri-Logistics Sponsor', 'project_owner', 'CM', '{agriculture,infrastructure}',
+     'Demo placeholder for the project sponsor on the Faminas-matched opportunity. Replace with the real counterparty.',
+     m, true, t0 - interval '200 days');
+
+  -- -------------------------------------------------------------------------
+  -- Deals, replaying each stage change at the time it happened
+  -- -------------------------------------------------------------------------
+  -- Douala cold-chain (Faminas-matched), XAF, 0 decimals
+  perform pg_temp.act(m, t0 - interval '200 days');
+  insert into public.deals (id, name, country, sector, ticket_minor, currency, stage, project_owner_org_id, fee_terms, spv_planned, owner_id, summary, is_demo, created_at)
+  values (d_dla, 'Douala cold-chain & agri-logistics hub', 'CM', 'agriculture', 4200000000, 'XAF', 'lead', o_dla,
+          'To be agreed per deal (Faminas mandate: deal-by-deal)', true, m,
+          'Cold storage and aggregation for export crops around Douala port. Matched to Faminas on sector and ticket.', true, t0 - interval '200 days');
+  perform pg_temp.act(m, t0 - interval '180 days'); update public.deals set stage = 'qualified' where id = d_dla;
+  perform pg_temp.act(m, t0 - interval '150 days'); update public.deals set stage = 'mandate_signed' where id = d_dla;
+  perform pg_temp.act(m, t0 - interval '120 days'); update public.deals set stage = 'introduced' where id = d_dla;
+  perform pg_temp.act(m, t0 - interval '60 days');  update public.deals set stage = 'due_diligence' where id = d_dla;
+  perform pg_temp.act(m, t0 - interval '12 days');
+  update public.deals set stage = 'term_sheet', probability = 60,
+         next_step = 'Return mark-up of Faminas term sheet', next_step_due = d0 + 3 where id = d_dla;
+
+  -- Morogoro agro-processing (PJM origination, Faminas introduced)
+  perform pg_temp.act(f, t0 - interval '150 days');
+  insert into public.deals (id, name, country, sector, ticket_minor, currency, stage, introducer_org_id, fee_terms, owner_id, summary, is_demo, created_at)
+  values (d_mor, 'Morogoro agro-processing hub', 'TZ', 'agriculture', 750000000, 'USD', 'lead', o_pjm,
+          'Per project at SPV stage (PJM NCNDA)', f,
+          'Maize and sunflower processing with out-grower scheme. Originated by PJM Advisory.', true, t0 - interval '150 days');
+  perform pg_temp.act(f, t0 - interval '135 days'); update public.deals set stage = 'qualified' where id = d_mor;
+  perform pg_temp.act(f, t0 - interval '120 days'); update public.deals set stage = 'nda_signed' where id = d_mor;
+  perform pg_temp.act(f, t0 - interval '90 days');  update public.deals set stage = 'introduced' where id = d_mor;
+  perform pg_temp.act(f, t0 - interval '30 days');
+  update public.deals set stage = 'due_diligence', next_step = 'Collect audited financials and land titles', next_step_due = d0 + 5 where id = d_mor;
+
+  -- Dodoma solar (PJM)
+  perform pg_temp.act(f, t0 - interval '110 days');
+  insert into public.deals (id, name, country, sector, ticket_minor, currency, stage, introducer_org_id, fee_terms, owner_id, summary, is_demo, created_at)
+  values (d_dod, 'Dodoma solar mini-grid portfolio', 'TZ', 'energy', 1200000000, 'USD', 'lead', o_pjm,
+          'Per project at SPV stage (PJM NCNDA)', f,
+          'Portfolio of rural mini-grids, phased build. Originated by PJM Advisory.', true, t0 - interval '110 days');
+  perform pg_temp.act(f, t0 - interval '95 days'); update public.deals set stage = 'qualified' where id = d_dod;
+  perform pg_temp.act(f, t0 - interval '80 days'); update public.deals set stage = 'nda_signed' where id = d_dod;
+  perform pg_temp.act(f, t0 - interval '35 days');
+  update public.deals set stage = 'introduced', next_step = 'Site visit to shortlisted villages', next_step_due = d0 - 6 where id = d_dod;
+
+  -- Mauritania fertilizer supply (Global Sphere → Ministry)
+  perform pg_temp.act(m, t0 - interval '75 days');
+  insert into public.deals (id, name, country, sector, ticket_minor, currency, stage, project_owner_org_id, fee_terms, owner_id, summary, is_demo, created_at)
+  values (d_mau, 'Mauritania fertilizer supply (urea, NPK, DAP)', 'MR', 'commodities', 1850000000, 'USD', 'lead', o_mau,
+          'To be agreed per shipment with Global Sphere', m,
+          'Government-to-supplier fertilizer programme. Global Sphere as producer; Ministry as buyer.', true, t0 - interval '75 days');
+  perform pg_temp.act(m, t0 - interval '60 days'); update public.deals set stage = 'qualified' where id = d_mau;
+  perform pg_temp.act(m, t0 - interval '40 days');
+  update public.deals set stage = 'introduced', next_step = 'Follow up with the Ministry on the supply proposal', next_step_due = d0 + 2 where id = d_mau;
+
+  -- Dar es Salaam logistics (PJM) — intentionally left stale
+  perform pg_temp.act(m, t0 - interval '60 days');
+  insert into public.deals (id, name, country, sector, ticket_minor, currency, stage, introducer_org_id, fee_terms, owner_id, summary, is_demo, created_at)
+  values (d_dar, 'Dar es Salaam logistics warehouse', 'TZ', 'infrastructure', 2200000000, 'USD', 'lead', o_pjm,
+          'Per project at SPV stage (PJM NCNDA)', m,
+          'Bonded warehouse near the port with a long-term anchor tenant.', true, t0 - interval '60 days');
+  perform pg_temp.act(m, t0 - interval '50 days'); update public.deals set stage = 'qualified' where id = d_dar;
+  perform pg_temp.act(m, t0 - interval '18 days');
+  update public.deals set stage = 'introduced', next_step = 'Chase Faminas for first-look feedback' where id = d_dar;
+
+  -- Lagos school campus (Fai's network), NGN
+  perform pg_temp.act(f, t0 - interval '10 days');
+  insert into public.deals (id, name, country, sector, ticket_minor, currency, stage, introducer_org_id, owner_id, summary, next_step, next_step_due, is_demo, created_at)
+  values (d_lag, 'Lagos private school campus expansion', 'NG', 'education', 900000000000, 'NGN', 'lead', o_fai, f,
+          'Second campus for an established K-12 operator. Early conversation.', 'Qualification call with the operator', d0 + 6,
+          true, t0 - interval '10 days');
+
+  -- Kigali data centre — closed-lost, keeps the history honest
+  perform pg_temp.act(f, t0 - interval '240 days');
+  insert into public.deals (id, name, country, sector, ticket_minor, currency, stage, owner_id, summary, is_demo, created_at)
+  values (d_kgl, 'Kigali data centre co-location', 'RW', 'telecoms', 1500000000, 'USD', 'lead', f,
+          'Tier III co-location facility. Sponsor chose a DFI-led round.', true, t0 - interval '240 days');
+  perform pg_temp.act(f, t0 - interval '220 days'); update public.deals set stage = 'qualified' where id = d_kgl;
+  perform pg_temp.act(f, t0 - interval '100 days'); update public.deals set stage = 'closed_lost', probability = 0 where id = d_kgl;
+
+  insert into public.deal_parties (deal_id, organization_id, role, is_demo) values
+    (d_mau, o_gs, 'supplier', true),
+    (d_mau, o_mau, 'buyer', true),
+    (d_mor, o_fam, 'investor_introduced', true),
+    (d_dod, o_fam, 'investor_introduced', true),
+    (d_dar, o_fam, 'investor_introduced', true),
+    (d_dla, o_fam, 'investor_introduced', true);
+
+  if s is not null then
+    insert into public.deal_members (deal_id, user_id, role) values (d_mor, s, 'analyst');
+  end if;
+
+  -- -------------------------------------------------------------------------
+  -- Documents (metadata only until the real files are uploaded)
+  -- -------------------------------------------------------------------------
+  perform pg_temp.act(m, t0 - interval '310 days');
+  insert into public.folders (id, name, is_demo) values
+    (fo_agr, 'Agreements', true), (fo_cor, 'Correspondence', true),
+    (fo_crp, 'Corporate', true), (fo_pre, 'Presentations', true);
+
+  insert into public.documents (id, title, folder_id, doc_type, confidentiality, status, expiry_date, description, is_demo, created_at) values
+    (doc_pre, 'Lantana Vision company presentation 2025', fo_pre, 'presentation', 'public', 'final', null,
+     'File not uploaded yet.', true, t0 - interval '310 days'),
+    (doc_rak, 'RAKEZ co-working lease', fo_crp, 'lease', 'confidential', 'signed', rak_end,
+     'File not uploaded yet.', true, t0 - interval '305 days'),
+    (doc_fai, 'NCNDA — Fai Shey Derick', fo_agr, 'agreement', 'confidential', 'signed', null,
+     'File not uploaded yet.', true, t0 - interval '300 days'),
+    (doc_pjm, 'NCNDA — PJM Advisory', fo_agr, 'agreement', 'confidential', 'signed', null,
+     'File not uploaded yet. Counterparty signing authority to be confirmed.', true, t0 - interval '300 days'),
+    (doc_fam, 'Mandate & Non-Circumvention Agreement — Faminas Investment Group', fo_agr, 'agreement', 'confidential', 'awaiting_signature', null,
+     'File not uploaded yet. Signatory and registered address pending.', true, t0 - interval '300 days'),
+    (doc_mau, 'Letter to the Ministry of Agriculture and Food Sovereignty — fertilizer supply proposal', fo_cor, 'letter', 'internal', 'final', null,
+     'File not uploaded yet.', true, t0 - interval '40 days');
+
+  insert into public.document_links (document_id, entity_type, entity_id) values
+    (doc_pjm, 'organization', o_pjm), (doc_fam, 'organization', o_fam), (doc_fai, 'organization', o_fai),
+    (doc_mau, 'organization', o_mau), (doc_mau, 'deal', d_mau), (doc_rak, 'organization', o_rak);
+
+  -- -------------------------------------------------------------------------
+  -- Contracts
+  -- -------------------------------------------------------------------------
+  perform pg_temp.act(m, t0 - interval '300 days');
+  insert into public.contracts (id, title, contract_type, counterparty_org_id, document_id, effective_date, term_months, end_date,
+    renewal_type, notice_period_days, governing_law, forum, exclusivity, fee_terms, signatory_name,
+    signatory_confirmed, signing_authority_confirmed, counterparty_address_confirmed, status, notes, is_demo, created_at) values
+    (k_pjm, 'NCNDA — PJM Advisory', 'ncnda', o_pjm, doc_pjm, d0 - 300, 24, (d0 - 300 + interval '24 months')::date,
+     'fixed', null, 'Laws of Tanzania', 'Courts of Tanzania', null, 'Fees agreed per project at SPV stage',
+     'Patrick Joseph Muwowo', true, false, true, 'active',
+     'Confirm Patrick Joseph Muwowo is authorised to bind PJM Advisory (board resolution or power of attorney).',
+     true, t0 - interval '300 days'),
+    (k_fam, 'Mandate & Non-Circumvention — Faminas Investment Group', 'mandate_non_circumvention', o_fam, doc_fam,
+     (fam_end - interval '12 months')::date, 12, fam_end,
+     'auto_renew', 30, 'Laws of the DIFC', 'DIFC-LCIA arbitration', 'Non-exclusive', 'Deal by deal',
+     null, false, false, false, 'active',
+     'Forum clause names DIFC-LCIA. That centre was abolished by Dubai Decree No. 34 of 2021 and its caseload moved to DIAC. Ask counsel how this clause will be read and whether to amend it at renewal.',
+     true, t0 - interval '300 days'),
+    (k_fai, 'NCNDA — Fai Shey Derick', 'ncnda', o_fai, doc_fai, d0 - 420, 24, (d0 - 420 + interval '24 months')::date,
+     'fixed', null, 'Laws of the UAE', 'Courts of Ras Al Khaimah', null, null,
+     'Fai Shey Derick', true, true, true, 'active', null, true, t0 - interval '300 days'),
+    (k_rak, 'RAKEZ co-working lease', 'lease', o_rak, doc_rak, (rak_end - interval '12 months')::date, 12, rak_end,
+     'fixed', null, 'Laws of the UAE', 'Courts of Ras Al Khaimah', null, null,
+     null, true, true, true, 'active', null, true, t0 - interval '300 days');
+
+  insert into public.contract_survival_clauses (contract_id, clause, survival_months, is_demo) values
+    (k_pjm, 'Non-circumvention and confidentiality', 24, true),
+    (k_fai, 'Non-circumvention and confidentiality', 24, true),
+    (k_fam, 'Non-circumvention', 24, true);
+
+  -- -------------------------------------------------------------------------
+  -- Introductions ledger (inserted in chronological order: the hash chain
+  -- records insertion order)
+  -- -------------------------------------------------------------------------
+  perform pg_temp.act(m, t0 - interval '120 days');
+  insert into public.introductions (introduced_on, deal_id, party_a_org_id, party_b_org_id, channel, summary, is_demo, row_hash)
+  values (d0 - 120, d_dla, o_fam, o_dla, 'meeting',
+          'Introduced Faminas Investment Group to the Douala project sponsor. Teaser and financial model shared under the Faminas mandate.', true, '');
+  perform pg_temp.act(f, t0 - interval '90 days');
+  insert into public.introductions (introduced_on, deal_id, party_a_org_id, party_a_contact_id, party_b_org_id, channel, summary, is_demo, row_hash)
+  values (d0 - 90, d_mor, o_pjm, c_pat, o_fam, 'email',
+          'Introduced PJM Advisory (Patrick Joseph Muwowo) to Faminas Investment Group on the Morogoro agro-processing hub.', true, '');
+  perform pg_temp.act(m, t0 - interval '40 days');
+  insert into public.introductions (introduced_on, deal_id, party_a_org_id, party_b_org_id, channel, summary, is_demo, row_hash)
+  values (d0 - 40, d_mau, o_gs, o_mau, 'letter',
+          'Fertilizer supply proposal (urea, NPK, DAP) sent to the Ministry, introducing Global Sphere as supplier.', true, '');
+  perform pg_temp.act(f, t0 - interval '35 days');
+  insert into public.introductions (introduced_on, deal_id, party_a_org_id, party_a_contact_id, party_b_org_id, channel, summary, is_demo, row_hash)
+  values (d0 - 35, d_dod, o_pjm, c_pat, o_fam, 'video_call',
+          'Video call introducing the Dodoma mini-grid portfolio to Faminas.', true, '');
+  perform pg_temp.act(m, t0 - interval '18 days');
+  insert into public.introductions (introduced_on, deal_id, party_a_org_id, party_a_contact_id, party_b_org_id, channel, summary, is_demo, row_hash)
+  values (d0 - 18, d_dar, o_pjm, c_pat, o_fam, 'email',
+          'Dar es Salaam warehouse teaser sent to Faminas with PJM Advisory copied.', true, '');
+
+  -- -------------------------------------------------------------------------
+  -- Projects & tasks
+  -- -------------------------------------------------------------------------
+  perform pg_temp.act(m, t0 - interval '45 days');
+  insert into public.projects (id, name, description, deal_id, owner_id, status, start_date, target_date, is_demo) values
+    (p_mau, 'Mauritania fertilizer supply — execution', 'From proposal to first shipment.', d_mau, m, 'active', d0 - 45, d0 + 120, true),
+    (p_cor, 'Company setup & compliance', 'Licence, tax registrations, bank and document hygiene.', null, f, 'active', d0 - 45, d0 + 90, true);
+
+  perform pg_temp.act(f, t0 - interval '60 days');
+  insert into public.tasks (title, priority, status, due_date, assignee_id, organization_id, project_id, created_at, is_demo)
+  values ('Collect KYC documents from PJM Advisory', 'medium', 'todo', d0 - 50, f, o_pjm, p_cor, t0 - interval '60 days', true);
+  perform pg_temp.act(f, t0 - interval '25 days');
+  update public.tasks set status = 'done' where title = 'Collect KYC documents from PJM Advisory' and is_demo;
+
+  perform pg_temp.act(m, t0 - interval '45 days');
+  insert into public.tasks (title, priority, status, due_date, assignee_id, deal_id, project_id, created_at, is_demo)
+  values ('Send Global Sphere product specs (urea 46% N, NPK, DAP) to the Ministry', 'high', 'todo', d0 - 38, m, d_mau, p_mau, t0 - interval '45 days', true);
+  perform pg_temp.act(m, t0 - interval '39 days');
+  update public.tasks set status = 'done' where deal_id = d_mau and title like 'Send Global Sphere%';
+
+  if s is not null then
+    perform pg_temp.act(f, t0 - interval '29 days');
+    insert into public.tasks (title, priority, status, due_date, assignee_id, deal_id, created_at, is_demo)
+    values ('Build the Morogoro data room index', 'medium', 'todo', d0 - 20, s, d_mor, t0 - interval '29 days', true);
+    perform pg_temp.act(s, t0 - interval '21 days');
+    update public.tasks set status = 'done' where deal_id = d_mor and title = 'Build the Morogoro data room index';
+
+    perform pg_temp.act(f, t0 - interval '8 days');
+    insert into public.tasks (title, description, priority, due_date, assignee_id, deal_id, created_at, is_demo)
+    values ('Request audited financials for the Morogoro agro-processing hub',
+            'Last three years, plus land title copies for the processing site.', 'medium', d0 + 5, s, d_mor, t0 - interval '8 days', true);
+  end if;
+
+  perform pg_temp.act(f, t0 - interval '20 days');
+  insert into public.tasks (title, description, priority, due_date, assignee_id, organization_id, contract_id, project_id, created_at, is_demo)
+  values ('Confirm Patrick Joseph Muwowo''s authority to sign for PJM Advisory',
+          'Ask for a board resolution or power of attorney. Without it the NCNDA may not bind PJM Advisory.',
+          'high', d0 - 3, f, o_pjm, k_pjm, p_cor, t0 - interval '20 days', true);
+
+  perform pg_temp.act(f, t0 - interval '16 days');
+  insert into public.tasks (title, priority, due_date, assignee_id, deal_id, created_at, is_demo)
+  values ('Schedule site visit to the Dodoma mini-grid villages', 'medium', d0 - 6, f, d_dod, t0 - interval '16 days', true);
+
+  perform pg_temp.act(m, t0 - interval '15 days');
+  insert into public.tasks (title, priority, due_date, assignee_id, organization_id, contract_id, project_id, created_at, is_demo)
+  values ('Get the Faminas signatory name and registered address for the mandate', 'high', d0 + 2, m, o_fam, k_fam, p_cor, t0 - interval '15 days', true);
+
+  perform pg_temp.act(m, t0 - interval '10 days');
+  insert into public.tasks (title, priority, due_date, assignee_id, deal_id, project_id, created_at, is_demo)
+  values ('Follow up with the Ministry on the fertilizer proposal', 'high', d0 - 1, m, d_mau, p_mau, t0 - interval '10 days', true);
+
+  perform pg_temp.act(m, t0 - interval '5 days');
+  insert into public.tasks (title, description, priority, due_date, assignee_id, contract_id, created_at, is_demo)
+  values ('Decide: renew the Faminas mandate or give notice',
+          'Auto-renews for another year unless notice is given 30 days before the term ends. Also raise the DIFC-LCIA forum clause with counsel.',
+          'urgent', fam_end - 32, m, k_fam, t0 - interval '5 days', true);
+
+  perform pg_temp.act(m, t0 - interval '4 days');
+  insert into public.tasks (title, priority, due_date, assignee_id, deal_id, created_at, is_demo)
+  values ('Mark up the Faminas term sheet for Douala cold-chain', 'high', d0 + 3, m, d_dla, t0 - interval '4 days', true);
+
+  perform pg_temp.act(f, t0 - interval '3 days');
+  insert into public.tasks (title, priority, due_date, assignee_id, project_id, created_at, is_demo) values
+    ('Upload signed copies of all agreements to the vault', 'medium', d0 + 7, f, p_cor, t0 - interval '3 days', true),
+    ('Prepare the Q4 investor update', 'medium', d0 + 21, f, null, t0 - interval '3 days', true);
+
+  -- -------------------------------------------------------------------------
+  -- Meetings this week (Dubai local times)
+  -- -------------------------------------------------------------------------
+  perform pg_temp.act(m, t0 - interval '2 days');
+  insert into public.meetings (title, starts_at, ends_at, location, deal_id, organization_id, attendee_ids, is_demo) values
+    ('Morogoro due diligence kick-off', ((d0 - 1) + time '10:00') at time zone 'Asia/Dubai', ((d0 - 1) + time '11:00') at time zone 'Asia/Dubai',
+     'Video call', d_mor, o_pjm, array_remove(array[f, s], null), true),
+    ('PJM Advisory — Dodoma pipeline call', ((d0 + 1) + time '11:00') at time zone 'Asia/Dubai', ((d0 + 1) + time '11:45') at time zone 'Asia/Dubai',
+     'Video call', d_dod, o_pjm, array[f], true),
+    ('Faminas investment committee prep', ((d0 + 2) + time '14:00') at time zone 'Asia/Dubai', ((d0 + 2) + time '15:00') at time zone 'Asia/Dubai',
+     'Lantana office, RAK', d_dla, o_fam, array[m, f], true),
+    ('Global Sphere — shipment schedule and pricing', ((d0 + 3) + time '10:30') at time zone 'Asia/Dubai', ((d0 + 3) + time '11:30') at time zone 'Asia/Dubai',
+     'Global Sphere offices', d_mau, o_gs, array[m], true),
+    ('Principals'' weekly review', ((d0 + 4) + time '09:00') at time zone 'Asia/Dubai', ((d0 + 4) + time '10:00') at time zone 'Asia/Dubai',
+     'Lantana office, RAK', null, null, array[m, f], true);
+
+  -- -------------------------------------------------------------------------
+  -- Compliance: listed as UNCONFIRMED. Nothing here drives alerts until a
+  -- principal confirms it applies and enters the real date.
+  -- -------------------------------------------------------------------------
+  perform pg_temp.act(f, t0 - interval '3 days');
+  insert into public.compliance_items (title, category, authority, status, owner_id, notes, is_demo) values
+    ('RAKEZ licence renewal', 'licence', 'RAKEZ', 'unconfirmed', f, 'Enter the renewal date from the current licence.', true),
+    ('Corporate Tax registration and annual return', 'tax', 'Federal Tax Authority', 'unconfirmed', f,
+     'Registration applies to free-zone companies too. Confirm the filing deadline with the accountant.', true),
+    ('VAT registration', 'tax', 'Federal Tax Authority', 'unconfirmed', f,
+     'Mandatory only above AED 375,000 of taxable supplies in 12 months. Confirm whether Lantana has crossed it.', true),
+    ('UBO register kept with RAKEZ', 'filing', 'RAKEZ', 'unconfirmed', f, 'Confirm the register is current after any shareholding change.', true);
+
+  -- -------------------------------------------------------------------------
+  -- Finance (demo figures)
+  -- -------------------------------------------------------------------------
+  perform pg_temp.act(m, t0 - interval '180 days');
+  insert into public.accounts (code, name, type, is_demo) values
+    ('1000', 'Bank — operating', 'asset', true),
+    ('4000', 'Advisory fees', 'income', true),
+    ('5000', 'Rent and office', 'expense', true),
+    ('5100', 'Licences and government fees', 'expense', true),
+    ('5200', 'Travel', 'expense', true),
+    ('5300', 'Software and subscriptions', 'expense', true),
+    ('5400', 'Professional fees', 'expense', true),
+    ('5500', 'Salaries', 'expense', true);
+
+  insert into public.bank_accounts (id, name, currency, opening_balance_minor, opening_date, iban_last4, is_demo)
+  values (bank, 'Operating account (AED)', 'AED', 18500000, d0 - 180, null, true);
+
+  for i in 0 .. 5 loop
+    insert into public.transactions (txn_date, description, account_id, bank_account_id, amount_minor, currency, is_demo)
+    select d0 - 175 + i * 30, 'Co-working desk rent', a.id, bank, -250000, 'AED', true from public.accounts a where a.code = '5000' and a.is_demo;
+    insert into public.transactions (txn_date, description, account_id, bank_account_id, amount_minor, currency, is_demo)
+    select d0 - 170 + i * 30, 'Software subscriptions', a.id, bank, -65000, 'AED', true from public.accounts a where a.code = '5300' and a.is_demo;
+    insert into public.transactions (txn_date, description, account_id, bank_account_id, amount_minor, currency, is_payroll, is_demo)
+    select d0 - 165 + i * 30, 'Payroll run', a.id, bank, -1800000, 'AED', true, true from public.accounts a where a.code = '5500' and a.is_demo;
+  end loop;
+
+  insert into public.transactions (txn_date, description, account_id, bank_account_id, amount_minor, currency, counterparty_org_id, deal_id, is_demo)
+  select v.dt, v.descr, a.id, bank, v.amt, v.cur, v.org, v.deal, true
+  from (values
+    (d0 - 110, 'Legal review of NCNDA templates', '5400', -450000::bigint, 'AED', null::uuid, null::uuid),
+    (d0 - 95,  'Travel — Dar es Salaam (PJM meetings)', '5200', -980000, 'AED', o_pjm, d_mor),
+    (d0 - 70,  'Advisory fee received — Global Sphere market entry', '4000', 3672500, 'AED', o_gs, null),
+    (d0 - 50,  'Travel — Nouakchott (Ministry meeting)', '5200', -1240000, 'AED', o_mau, d_mau),
+    (d0 - 20,  'Travel — Douala site visit', '5200', -1120000, 'AED', o_dla, d_dla)
+  ) as v(dt, descr, code, amt, cur, org, deal)
+  join public.accounts a on a.code = v.code and a.is_demo;
+
+  insert into public.invoices (invoice_no, organization_id, kind, issue_date, due_date, currency, total_minor, status, paid_at, is_demo) values
+    ('INV-DEMO-001', o_gs, 'advisory', d0 - 100, d0 - 70, 'USD', 1000000, 'paid', d0 - 70, true),
+    ('INV-DEMO-002', o_gs, 'advisory', d0 - 40, d0 - 10, 'USD', 750000, 'sent', null, true);
+
+  -- -------------------------------------------------------------------------
+  -- Notifications
+  -- -------------------------------------------------------------------------
+  insert into public.notifications (user_id, kind, title, body, entity_type, entity_id, is_demo, created_at) values
+    (m, 'contract_notice', 'Faminas mandate: notice deadline in ' || (fam_end - 30 - d0) || ' days',
+     'The mandate auto-renews on ' || to_char(fam_end, 'DD Mon YYYY') || ' unless notice is given.', 'contract', k_fam, true, t0 - interval '1 day'),
+    (f, 'task_overdue', 'Overdue: confirm PJM signing authority', null, 'contract', k_pjm, true, t0 - interval '2 days'),
+    (m, 'deal_stale', 'Dar es Salaam logistics warehouse has been quiet for 18 days', null, 'deal', d_dar, true, t0 - interval '6 hours');
+
+  -- Tidy up session state so nothing after this runs as a demo user.
+  perform set_config('request.jwt.claims', '', false);
+  perform set_config('app.occurred_at', '', false);
+end $$;
