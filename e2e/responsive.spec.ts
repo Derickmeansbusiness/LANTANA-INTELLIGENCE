@@ -45,6 +45,12 @@ test("every page fits 375px", async ({ page }) => {
     "/tasks?view=timeline",
     "/tasks?view=projects",
     "/tasks/projects/b1000000-0000-4000-8000-000000000001",
+    "/documents",
+    "/documents/f0000000-0000-4000-8000-000000000001",
+    "/documents/templates",
+    "/documents/templates/mandate",
+    "/contracts/e0000000-0000-4000-8000-000000000002",
+    "/s/unavailable?r=expired",
   ]) {
     await page.goto(path);
     expect(await noHorizontalScroll(page), path).toBe(true);
@@ -65,6 +71,27 @@ test("phase 2 pages at 375px in both themes", async ({ page }) => {
   await page.goto("/deals/d0000000-0000-4000-8000-000000000005");
   expect(await noHorizontalScroll(page)).toBe(true);
   await page.screenshot({ path: `${SHOTS}/mobile-deal-page-light.png`, fullPage: true });
+  await setTheme(page, "dark");
+});
+
+test("phase 3 pages at 375px in both themes", async ({ page }) => {
+  const pages = [
+    ["/documents", "documents"],
+    ["/documents/f0000000-0000-4000-8000-000000000001", "document-page"],
+    ["/documents/templates/ncnda", "template-form"],
+    ["/contracts", "contracts"],
+    ["/contracts/e0000000-0000-4000-8000-000000000002", "contract-page"],
+  ] as const;
+  await page.goto("/documents");
+  for (const theme of ["dark", "light"] as const) {
+    await setTheme(page, theme);
+    for (const [path, name] of pages) {
+      await page.goto(path);
+      await expect(page.locator("h1").first()).toBeVisible();
+      expect(await noHorizontalScroll(page), `${path} ${theme}`).toBe(true);
+      await page.screenshot({ path: `${SHOTS}/mobile-${name}-${theme}.png`, fullPage: true });
+    }
+  }
   await setTheme(page, "dark");
 });
 

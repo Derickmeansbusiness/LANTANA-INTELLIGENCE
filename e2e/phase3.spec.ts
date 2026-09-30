@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { extractText, getDocumentProxy } from "unpdf";
-import { authFile } from "./helpers";
+import { SHOTS, authFile } from "./helpers";
 
 // Phase 3: documents vault, share links, contracts. Writes data; names carry the run id.
 const run = process.env.E2E_RUN!;
@@ -234,5 +234,25 @@ test.describe("staff · contracts register", () => {
     await expect(page.getByText(/not found|doesn.t exist/i).first()).toBeVisible();
     await page.goto("/contracts/e0000000-0000-4000-8000-000000000001");
     await expect(page.getByText(/not found|doesn.t exist/i).first()).toBeVisible();
+  });
+});
+
+test.describe("principal · phase 3 pages at desktop in both themes", () => {
+  test.use({ storageState: authFile("principal") });
+  test("documents, templates and contracts render in light and dark", async ({ page }) => {
+    for (const theme of ["light", "dark"] as const) {
+      await page.goto("/");
+      await page.evaluate((t) => localStorage.setItem("theme", t), theme);
+      for (const [path, name] of [
+        ["/documents", "documents"],
+        ["/documents/templates", "templates"],
+        ["/contracts", "contracts"],
+        ["/contracts/e0000000-0000-4000-8000-000000000002", "contract-page"],
+      ] as const) {
+        await page.goto(path);
+        await expect(page.locator("h1").first()).toBeVisible();
+        await page.screenshot({ path: `${SHOTS}/desktop-${name}-${theme}.png`, fullPage: true });
+      }
+    }
   });
 });
