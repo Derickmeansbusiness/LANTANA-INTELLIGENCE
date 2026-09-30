@@ -5,6 +5,8 @@ import { after } from "next/server";
 import { createClient, createTokenClient, type Db } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/action-result";
 import * as docs from "@/server/documents";
+import { getSession } from "@/server/session";
+import { generateFromTemplate, type GenerateInput } from "@/server/templates/generate";
 
 function refresh(id?: string) {
   revalidatePath("/documents");
@@ -14,6 +16,19 @@ function refresh(id?: string) {
 async function accessToken(db: Db) {
   const { data } = await db.auth.getSession();
   return data.session?.access_token ?? null;
+}
+
+/** Extract, chunk and embed a version after the response is sent, as the same user. */
+async function scheduleIngest(db: Db, versionId: string) {
+  const token = await accessToken(db);
+  if (!token) return;
+  after(async () => {
+    try {
+      await docs.ingestVersion(createTokenClient(token), versionId, token);
+    } catch (e) {
+      console.error("ingest failed", versionId, e);
+    }
+  });
 }
 
 export async function createDocumentAction(input: unknown) {
@@ -49,16 +64,7 @@ export async function registerVersionAction(input: unknown): Promise<ActionResul
   const db = await createClient();
   const r = await docs.registerVersion(db, input);
   if (!r.ok) return r;
-  const token = await accessToken(db);
-  if (token) {
-    after(async () => {
-      try {
-        await docs.ingestVersion(createTokenClient(token), r.data.versionId, token);
-      } catch (e) {
-        console.error("ingest failed", r.data.versionId, e);
-      }
-    });
-  }
+  await scheduleIngest(db, r.data.versionId);
   refresh((input as { documentId?: string })?.documentId);
   return r;
 }
@@ -95,5 +101,15 @@ export async function revokeShareAction(documentId: string, id: string) {
 export async function createFolderAction(name: string, parentId: string | null) {
   const r = await docs.createFolder(await createClient(), name, parentId);
   if (r.ok) refresh();
+  return r;
+}
+
+export async function generateFromTemplateAction(input: GenerateInput) {
+  const db = await createClient();
+  const r = await generateFromTemplate(db, await getSession(), input);
+  if (r.ok) {
+    await scheduleIngest(db, r.data.versionId);
+    refresh(r.data.id);
+  }
   return r;
 }

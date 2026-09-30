@@ -9,6 +9,7 @@ import { FormField } from "@/components/form-field";
 import { CONFIDENTIALITY, DOC_STATUSES, DOC_TYPES } from "@/lib/schemas/documents";
 import { label } from "@/lib/schemas/common";
 import type { LinkTarget } from "@/server/documents";
+import { cn } from "@/lib/utils";
 
 export type DocMeta = {
   title: string;
@@ -67,9 +68,6 @@ export function DocMetaFields({
   idPrefix?: string;
 }) {
   const id = (s: string) => `${idPrefix}-${s}`;
-  const linked = new Set(v.links.map((l) => `${l.entity_type}:${l.entity_id}`));
-  const name = (t: string, eid: string) => targets.find((x) => x.entity_type === t && x.entity_id === eid)?.name ?? "Linked record";
-  const groups = (["deal", "organization", "contract", "project"] as const).map((t) => ({ t, items: targets.filter((x) => x.entity_type === t) }));
 
   return (
     <>
@@ -119,52 +117,75 @@ export function DocMetaFields({
       <FormField label="Tags" htmlFor={id("tags")} hint="Comma-separated, e.g. KYC, Tanzania">
         <Input id={id("tags")} value={v.tags} onChange={(e) => set("tags", e.target.value)} maxLength={400} />
       </FormField>
-      <div className="space-y-1.5 sm:col-span-2">
-        <FormField label="Linked to" htmlFor={id("link")}>
-          <NativeSelect
-            id={id("link")}
-            value=""
-            onChange={(e) => {
-              const [t, eid] = e.target.value.split(":");
-              if (t && eid && !linked.has(e.target.value)) set("links", [...v.links, { entity_type: t as LinkTarget["entity_type"], entity_id: eid }]);
-            }}
-          >
-            <option value="">Add a deal, organization, contract or project…</option>
-            {groups.map(
-              (g) =>
-                g.items.length > 0 && (
-                  <optgroup key={g.t} label={`${TYPE_LABEL[g.t]}s`}>
-                    {g.items.map((x) => (
-                      <option key={x.entity_id} value={`${x.entity_type}:${x.entity_id}`} disabled={linked.has(`${x.entity_type}:${x.entity_id}`)}>
-                        {x.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ),
-            )}
-          </NativeSelect>
-        </FormField>
-        {v.links.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {v.links.map((l) => (
-              <Badge key={`${l.entity_type}:${l.entity_id}`} variant="outline" className="gap-1 pr-1">
-                <span className="text-muted-foreground">{TYPE_LABEL[l.entity_type]}:</span> {name(l.entity_type, l.entity_id)}
-                <button
-                  type="button"
-                  aria-label={`Remove link to ${name(l.entity_type, l.entity_id)}`}
-                  className="rounded p-0.5 hover:bg-surface-2"
-                  onClick={() => set("links", v.links.filter((x) => !(x.entity_type === l.entity_type && x.entity_id === l.entity_id)))}
-                >
-                  <XIcon className="size-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
+      <LinkPicker id={id("link")} links={v.links} onChange={(l) => set("links", l)} targets={targets} className="sm:col-span-2" />
       <FormField label="Description" htmlFor={id("desc")} className="sm:col-span-2">
         <Textarea id={id("desc")} rows={3} value={v.description} onChange={(e) => set("description", e.target.value)} maxLength={4000} />
       </FormField>
     </>
+  );
+}
+
+type Link = DocMeta["links"][number];
+
+export function LinkPicker({
+  id,
+  links,
+  onChange,
+  targets,
+  className,
+}: {
+  id: string;
+  links: Link[];
+  onChange: (l: Link[]) => void;
+  targets: LinkTarget[];
+  className?: string;
+}) {
+  const linked = new Set(links.map((l) => `${l.entity_type}:${l.entity_id}`));
+  const name = (t: string, eid: string) => targets.find((x) => x.entity_type === t && x.entity_id === eid)?.name ?? "Linked record";
+  const groups = (["deal", "organization", "contract", "project"] as const).map((t) => ({ t, items: targets.filter((x) => x.entity_type === t) }));
+  return (
+    <div className={cn("min-w-0 space-y-1.5", className)}>
+      <FormField label="Linked to" htmlFor={id}>
+        <NativeSelect
+          id={id}
+          value=""
+          onChange={(e) => {
+            const [t, eid] = e.target.value.split(":");
+            if (t && eid && !linked.has(e.target.value)) onChange([...links, { entity_type: t as LinkTarget["entity_type"], entity_id: eid }]);
+          }}
+        >
+          <option value="">Add a deal, organization, contract or project…</option>
+          {groups.map(
+            (g) =>
+              g.items.length > 0 && (
+                <optgroup key={g.t} label={`${TYPE_LABEL[g.t]}s`}>
+                  {g.items.map((x) => (
+                    <option key={x.entity_id} value={`${x.entity_type}:${x.entity_id}`} disabled={linked.has(`${x.entity_type}:${x.entity_id}`)}>
+                      {x.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ),
+          )}
+        </NativeSelect>
+      </FormField>
+      {links.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {links.map((l) => (
+            <Badge key={`${l.entity_type}:${l.entity_id}`} variant="outline" className="gap-1 pr-1">
+              <span className="text-muted-foreground">{TYPE_LABEL[l.entity_type]}:</span> {name(l.entity_type, l.entity_id)}
+              <button
+                type="button"
+                aria-label={`Remove link to ${name(l.entity_type, l.entity_id)}`}
+                className="rounded p-0.5 hover:bg-surface-2"
+                onClick={() => onChange(links.filter((x) => !(x.entity_type === l.entity_type && x.entity_id === l.entity_id)))}
+              >
+                <XIcon className="size-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

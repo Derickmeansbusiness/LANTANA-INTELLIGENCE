@@ -109,3 +109,55 @@ test.describe("staff · documents vault", () => {
     await expect(page.getByText(/not found|doesn.t exist/i).first()).toBeVisible();
   });
 });
+
+test.describe.serial("principal · templates", () => {
+  test.use({ storageState: authFile("principal") });
+
+  test("NCNDA as PDF from the directory, saved as a draft and indexed", async ({ page }) => {
+    await page.goto("/documents/templates");
+    await expect(page.getByText("Available once payroll is live (Phase 5)", { exact: false })).toBeVisible();
+    await page.getByRole("link", { name: "Use the NCNDA template" }).click();
+    await page.getByLabel("Fill from the directory").selectOption({ label: "PJM Advisory" });
+    await expect(page.getByLabel("Counterparty (legal name)")).toHaveValue("PJM Advisory");
+    await page.getByLabel("Counterparty (legal name)").fill(`PJM Advisory ${run}`);
+    await page.getByLabel("Incorporated in (optional)").fill("Tanzania");
+    await page.getByRole("button", { name: "Generate and save" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: `NCNDA — PJM Advisory ${run}` })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("Draft", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Searchable")).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByRole("link", { name: "PJM Advisory", exact: true })).toBeVisible();
+  });
+
+  test("Mandate as Word, required fields enforced", async ({ page }) => {
+    await page.goto("/documents/templates/mandate");
+    await page.getByRole("button", { name: "Generate and save" }).click();
+    await expect(page.getByText("Required").first()).toBeVisible();
+    await page.getByLabel("Client (legal name)").fill(`Faminas Investment Group ${run}`);
+    await page.getByLabel("Mandate", { exact: true }).fill("identify and introduce GCC investors for the Morogoro fertilizer blending plant");
+    await page.getByLabel("Word (DOCX)").check();
+    await page.getByRole("button", { name: "Generate and save" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: `Mandate & Non-Circumvention Agreement — Faminas Investment Group ${run}` })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/\.docx/).first()).toBeVisible();
+    await expect(page.getByText("Searchable")).toBeVisible({ timeout: 45_000 });
+  });
+
+  test("invoice prints from a recorded invoice", async ({ page }) => {
+    await page.goto("/documents/templates/invoice");
+    const select = page.getByLabel("Invoice", { exact: true });
+    const first = await select.locator("option").nth(1).textContent();
+    await select.selectOption({ index: 1 });
+    await page.getByRole("button", { name: "Generate and save" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: new RegExp(`^Invoice ${first!.split(" · ")[0]}`) })).toBeVisible({ timeout: 30_000 });
+  });
+});
+
+test.describe("staff · templates", () => {
+  test.use({ storageState: authFile("staff") });
+  test("manager-only templates are locked", async ({ page }) => {
+    await page.goto("/documents/templates");
+    await expect(page.getByRole("link", { name: "Use the Invoice template" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Use the Board Resolution template" })).toHaveCount(0);
+    await page.goto("/documents/templates/invoice");
+    await expect(page.getByText("Only a manager or principal can use this template.")).toBeVisible();
+  });
+});

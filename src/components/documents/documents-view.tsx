@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ColumnDef } from "@tanstack/react-table";
-import { FolderIcon, FolderPlusIcon, LockIcon, SearchIcon, SparklesIcon, UploadIcon, XIcon } from "lucide-react";
+import { FileSignatureIcon, FolderIcon, FolderPlusIcon, LockIcon, SearchIcon, SparklesIcon, UploadIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -177,6 +177,11 @@ export function DocumentsView({
                 <FolderPlusIcon /> New folder
               </Button>
             )}
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/documents/templates">
+                <FileSignatureIcon /> Templates
+              </Link>
+            </Button>
             <Button size="sm" onClick={() => setUpload(true)}>
               <UploadIcon /> Upload
             </Button>
