@@ -26,3 +26,5 @@ export async function createClient() {
     },
   });
 }
+
+export type Db = Awaited<ReturnType<typeof createClient>>;

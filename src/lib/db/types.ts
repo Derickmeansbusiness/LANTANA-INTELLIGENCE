@@ -400,13 +400,13 @@ isOneToOne: false
                   ]
                 },"deals": {
                   Row: {
-                    "country": string | null,"created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"fee_pct": number | null,"fee_terms": string | null,"id": string,"introducer_org_id": string | null,"is_demo": boolean,"last_activity_at": string,"name": string,"next_step": string | null,"next_step_due": string | null,"owner_id": string | null,"probability": number | null,"project_owner_org_id": string | null,"search": unknown,"sector": Database["public"]['Enums']["sector"],"spv_planned": boolean,"stage": string,"summary": string | null,"ticket_minor": number | null,"updated_at": string
+                    "country": string | null,"created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"expected_close_date": string | null,"fee_pct": number | null,"fee_terms": string | null,"id": string,"introducer_org_id": string | null,"is_demo": boolean,"last_activity_at": string,"name": string,"next_step": string | null,"next_step_due": string | null,"owner_id": string | null,"probability": number | null,"project_owner_org_id": string | null,"search": unknown,"sector": Database["public"]['Enums']["sector"],"spv_planned": boolean,"stage": string,"summary": string | null,"ticket_minor": number | null,"updated_at": string
                   }
                   Insert: {
-                    "country"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"fee_pct"?: number | null,"fee_terms"?: string | null,"id"?: string,"introducer_org_id"?: string | null,"is_demo"?: boolean,"last_activity_at"?: string,"name": string,"next_step"?: string | null,"next_step_due"?: string | null,"owner_id"?: string | null,"probability"?: number | null,"project_owner_org_id"?: string | null,"search"?: never,"sector": Database["public"]['Enums']["sector"],"spv_planned"?: boolean,"stage"?: string,"summary"?: string | null,"ticket_minor"?: number | null,"updated_at"?: string
+                    "country"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"expected_close_date"?: string | null,"fee_pct"?: number | null,"fee_terms"?: string | null,"id"?: string,"introducer_org_id"?: string | null,"is_demo"?: boolean,"last_activity_at"?: string,"name": string,"next_step"?: string | null,"next_step_due"?: string | null,"owner_id"?: string | null,"probability"?: number | null,"project_owner_org_id"?: string | null,"search"?: never,"sector": Database["public"]['Enums']["sector"],"spv_planned"?: boolean,"stage"?: string,"summary"?: string | null,"ticket_minor"?: number | null,"updated_at"?: string
                   }
                   Update: {
-                    "country"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"fee_pct"?: number | null,"fee_terms"?: string | null,"id"?: string,"introducer_org_id"?: string | null,"is_demo"?: boolean,"last_activity_at"?: string,"name"?: string,"next_step"?: string | null,"next_step_due"?: string | null,"owner_id"?: string | null,"probability"?: number | null,"project_owner_org_id"?: string | null,"search"?: never,"sector"?: Database["public"]['Enums']["sector"],"spv_planned"?: boolean,"stage"?: string,"summary"?: string | null,"ticket_minor"?: number | null,"updated_at"?: string
+                    "country"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"expected_close_date"?: string | null,"fee_pct"?: number | null,"fee_terms"?: string | null,"id"?: string,"introducer_org_id"?: string | null,"is_demo"?: boolean,"last_activity_at"?: string,"name"?: string,"next_step"?: string | null,"next_step_due"?: string | null,"owner_id"?: string | null,"probability"?: number | null,"project_owner_org_id"?: string | null,"search"?: never,"sector"?: Database["public"]['Enums']["sector"],"spv_planned"?: boolean,"stage"?: string,"summary"?: string | null,"ticket_minor"?: number | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -608,6 +608,43 @@ isOneToOne: false
       referencedColumns: ["code"]
     }
                   ]
+                },"interactions": {
+                  Row: {
+                    "contact_id": string | null,"created_at": string,"created_by": string | null,"deal_id": string | null,"deleted_at": string | null,"id": string,"is_demo": boolean,"kind": string,"occurred_on": string,"organization_id": string | null,"summary": string,"updated_at": string
+                  }
+                  Insert: {
+                    "contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"kind": string,"occurred_on": string,"organization_id"?: string | null,"summary": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "contact_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"kind"?: string,"occurred_on"?: string,"organization_id"?: string | null,"summary"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "interactions_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "interactions_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "interactions_deal_id_fkey"
+      columns: ["deal_id"]
+isOneToOne: false
+      referencedRelation: "deals"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "interactions_organization_id_fkey"
+      columns: ["organization_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"introductions": {
                   Row: {
                     "channel": string,"corrects_id": string | null,"deal_id": string | null,"evidence_document_id": string | null,"id": string,"introduced_on": string,"is_demo": boolean,"party_a_contact_id": string | null,"party_a_org_id": string,"party_b_contact_id": string | null,"party_b_org_id": string,"prev_hash": string | null,"recorded_at": string,"recorded_by": string | null,"row_hash": string,"seq": number,"summary": string
@@ -734,6 +771,50 @@ isOneToOne: false
       columns: ["organization_id"]
 isOneToOne: false
       referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"milestones": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"due_date": string | null,"id": string,"is_demo": boolean,"name": string,"project_id": string,"sort_order": number,"status": string,"updated_at": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"name": string,"project_id": string,"sort_order"?: number,"status"?: string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"name"?: string,"project_id"?: string,"sort_order"?: number,"status"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "milestones_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "milestones_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"notes": {
+                  Row: {
+                    "body": string,"created_at": string,"created_by": string,"deleted_at": string | null,"entity_id": string,"entity_type": string,"id": string,"is_demo": boolean,"pinned": boolean,"updated_at": string
+                  }
+                  Insert: {
+                    "body": string,"created_at"?: string,"created_by"?: string,"deleted_at"?: string | null,"entity_id": string,"entity_type": string,"id"?: string,"is_demo"?: boolean,"pinned"?: boolean,"updated_at"?: string
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"created_by"?: string,"deleted_at"?: string | null,"entity_id"?: string,"entity_type"?: string,"id"?: string,"is_demo"?: boolean,"pinned"?: boolean,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notes_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
       referencedColumns: ["id"]
     }
                   ]
@@ -881,15 +962,96 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"tasks": {
+                },"task_checklist_items": {
                   Row: {
-                    "assignee_id": string | null,"completed_at": string | null,"contract_id": string | null,"created_at": string,"created_by": string | null,"deal_id": string | null,"deleted_at": string | null,"description": string | null,"due_date": string | null,"id": string,"is_demo": boolean,"organization_id": string | null,"priority": Database["public"]['Enums']["priority"],"project_id": string | null,"recurrence_rule": string | null,"search": unknown,"source": string,"status": Database["public"]['Enums']["task_status"],"title": string,"updated_at": string
+                    "created_at": string,"created_by": string | null,"done": boolean,"id": string,"is_demo": boolean,"label": string,"sort_order": number,"task_id": string,"updated_at": string
                   }
                   Insert: {
-                    "assignee_id"?: string | null,"completed_at"?: string | null,"contract_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"organization_id"?: string | null,"priority"?: Database["public"]['Enums']["priority"],"project_id"?: string | null,"recurrence_rule"?: string | null,"search"?: never,"source"?: string,"status"?: Database["public"]['Enums']["task_status"],"title": string,"updated_at"?: string
+                    "created_at"?: string,"created_by"?: string | null,"done"?: boolean,"id"?: string,"is_demo"?: boolean,"label": string,"sort_order"?: number,"task_id": string,"updated_at"?: string
                   }
                   Update: {
-                    "assignee_id"?: string | null,"completed_at"?: string | null,"contract_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"organization_id"?: string | null,"priority"?: Database["public"]['Enums']["priority"],"project_id"?: string | null,"recurrence_rule"?: string | null,"search"?: never,"source"?: string,"status"?: Database["public"]['Enums']["task_status"],"title"?: string,"updated_at"?: string
+                    "created_at"?: string,"created_by"?: string | null,"done"?: boolean,"id"?: string,"is_demo"?: boolean,"label"?: string,"sort_order"?: number,"task_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_checklist_items_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_checklist_items_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"task_comments": {
+                  Row: {
+                    "body": string,"created_at": string,"created_by": string,"deleted_at": string | null,"id": string,"is_demo": boolean,"task_id": string,"updated_at": string
+                  }
+                  Insert: {
+                    "body": string,"created_at"?: string,"created_by"?: string,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"task_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"created_by"?: string,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"task_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_comments_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_comments_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"task_dependencies": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"depends_on_id": string,"is_demo": boolean,"task_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"depends_on_id": string,"is_demo"?: boolean,"task_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"depends_on_id"?: string,"is_demo"?: boolean,"task_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "task_dependencies_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_dependencies_depends_on_id_fkey"
+      columns: ["depends_on_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "task_dependencies_task_id_fkey"
+      columns: ["task_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"tasks": {
+                  Row: {
+                    "assignee_id": string | null,"completed_at": string | null,"contract_id": string | null,"created_at": string,"created_by": string | null,"deal_id": string | null,"deleted_at": string | null,"description": string | null,"due_date": string | null,"id": string,"is_demo": boolean,"milestone_id": string | null,"organization_id": string | null,"priority": Database["public"]['Enums']["priority"],"project_id": string | null,"recurrence_parent_id": string | null,"recurrence_rule": string | null,"search": unknown,"source": string,"status": Database["public"]['Enums']["task_status"],"title": string,"updated_at": string
+                  }
+                  Insert: {
+                    "assignee_id"?: string | null,"completed_at"?: string | null,"contract_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"milestone_id"?: string | null,"organization_id"?: string | null,"priority"?: Database["public"]['Enums']["priority"],"project_id"?: string | null,"recurrence_parent_id"?: string | null,"recurrence_rule"?: string | null,"search"?: never,"source"?: string,"status"?: Database["public"]['Enums']["task_status"],"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "assignee_id"?: string | null,"completed_at"?: string | null,"contract_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"milestone_id"?: string | null,"organization_id"?: string | null,"priority"?: Database["public"]['Enums']["priority"],"project_id"?: string | null,"recurrence_parent_id"?: string | null,"recurrence_rule"?: string | null,"search"?: never,"source"?: string,"status"?: Database["public"]['Enums']["task_status"],"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -917,6 +1079,12 @@ isOneToOne: false
       referencedRelation: "deals"
       referencedColumns: ["id"]
     },{
+      foreignKeyName: "tasks_milestone_id_fkey"
+      columns: ["milestone_id"]
+isOneToOne: false
+      referencedRelation: "milestones"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "tasks_organization_id_fkey"
       columns: ["organization_id"]
 isOneToOne: false
@@ -927,6 +1095,12 @@ isOneToOne: false
       columns: ["project_id"]
 isOneToOne: false
       referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tasks_recurrence_parent_id_fkey"
+      columns: ["recurrence_parent_id"]
+isOneToOne: false
+      referencedRelation: "tasks"
       referencedColumns: ["id"]
     }
                   ]
@@ -1014,6 +1188,14 @@ isOneToOne: false
                            },
 "log_event":
 { Args: { "p_action": string,"p_context"?: Json,"p_row_id": string,"p_table": string }; Returns: undefined
+                           },
+"match_investors":
+{ Args: { "p_deal": string,"p_limit"?: number }; Returns: {
+              "already_involved": boolean,"country": string,"geo_points": number,"name": string,"organization_id": string,"reasons": (string)[],"score": number,"sector_points": number,"ticket_points": number
+            }[]
+                           },
+"move_deal_stage":
+{ Args: { "p_deal": string,"p_note"?: string,"p_stage": string }; Returns: undefined
                            },
 "reveal_bank_account_iban":
 { Args: { "p_id": string }; Returns: string

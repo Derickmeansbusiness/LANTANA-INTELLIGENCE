@@ -9,13 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { BrandMark, Wordmark } from "@/components/brand-mark";
-import { navFor, isActive, NAV } from "./nav";
+import { navFor, isActive, NAV, CURRENT_PHASE } from "./nav";
 import { UserMenu } from "./user-menu";
 import { CommandPalette } from "./command-palette";
 import { NotificationsBell } from "./notifications-bell";
 import { AgentPanel } from "./agent-panel";
 import { DateRangePicker } from "./date-range-picker";
 import { RecordSheet } from "./record-sheet";
+import { TaskSheet } from "@/components/tasks/task-sheet";
 import type { ShellUser } from "./types";
 
 const COLLAPSE_KEY = "lc.sidebar.collapsed";
@@ -140,6 +141,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
       <AgentPanel open={agentOpen} onOpenChange={setAgentOpen} />
       <Suspense fallback={null}>
         <RecordSheet />
+        <TaskSheet />
       </Suspense>
     </div>
   );
@@ -183,7 +185,7 @@ function SidebarBody({
               {active && <span className="absolute top-2 bottom-2 left-0 w-0.5 rounded-full bg-gold" aria-hidden />}
               <item.icon className={cn("size-4 shrink-0", active && "text-gold")} />
               {!collapsed && <span className="truncate">{item.label}</span>}
-              {!collapsed && item.phase > 1 && item.href !== "/settings" && (
+              {!collapsed && item.phase > CURRENT_PHASE && (
                 <span className="num ml-auto text-[10px] text-muted-foreground/70">P{item.phase}</span>
               )}
             </Link>

@@ -442,6 +442,70 @@ begin
     (f, 'task_overdue', 'Overdue: confirm PJM signing authority', null, 'contract', k_pjm, true, t0 - interval '2 days'),
     (m, 'deal_stale', 'Dar es Salaam logistics warehouse has been quiet for 18 days', null, 'deal', d_dar, true, t0 - interval '6 hours');
 
+  -- -------------------------------------------------------------------------
+  -- Phase 2 additions: close dates, milestones, checklists, comments,
+  -- dependencies, recurring tasks, interactions, notes
+  -- -------------------------------------------------------------------------
+  perform pg_temp.act(m, t0 - interval '2 days');
+  update public.deals set expected_close_date = d0 + 45  where id = d_dla;
+  update public.deals set expected_close_date = d0 + 120 where id = d_mor;
+  update public.deals set expected_close_date = d0 + 90  where id = d_mau;
+  update public.deals set expected_close_date = d0 + 200 where id = d_dod;
+  update public.deals set expected_close_date = d0 + 240 where id = d_dar;
+  update public.deals set expected_close_date = d0 + 330 where id = d_lag;
+
+  insert into public.milestones (project_id, name, due_date, status, sort_order, is_demo) values
+    (p_mau, 'Proposal sent to the Ministry', d0 - 40, 'done', 1, true),
+    (p_mau, 'Ministry feedback on volumes and pricing', d0 + 20, 'open', 2, true),
+    (p_mau, 'Supply contract signed', d0 + 60, 'open', 3, true),
+    (p_mau, 'First shipment loaded', d0 + 110, 'open', 4, true),
+    (p_cor, 'All signed agreements in the vault', d0 + 7, 'open', 1, true),
+    (p_cor, 'Compliance obligations confirmed', d0 + 30, 'open', 2, true);
+
+  insert into public.task_checklist_items (task_id, label, done, sort_order, is_demo)
+  select t.id, v.label, v.done, v.ord, true
+  from public.tasks t,
+       (values ('Check fee clause against the mandate (deal by deal)', true, 1),
+               ('Confirm SPV jurisdiction', false, 2),
+               ('Flag the exclusivity period', false, 3),
+               ('Send mark-up to Faminas', false, 4)) as v(label, done, ord)
+  where t.deal_id = d_dla and t.title like 'Mark up the Faminas term sheet%';
+
+  insert into public.task_comments (task_id, body, created_by, is_demo, created_at)
+  select t.id, 'Started on the fee clause. The mandate says fees are agreed deal by deal, so we should propose the number here rather than leave it open.', m, true, t0 - interval '3 days'
+  from public.tasks t where t.deal_id = d_dla and t.title like 'Mark up the Faminas term sheet%';
+
+  insert into public.task_dependencies (task_id, depends_on_id, is_demo)
+  select a.id, b.id, true
+  from public.tasks a, public.tasks b
+  where a.title = 'Follow up with the Ministry on the fertilizer proposal' and a.is_demo
+    and b.title like 'Send Global Sphere product specs%' and b.is_demo;
+
+  perform pg_temp.act(f, t0 - interval '6 days');
+  insert into public.tasks (title, description, priority, due_date, assignee_id, project_id, source, recurrence_rule, created_at, is_demo) values
+    ('Prepare the monthly management pack', 'Pipeline, cash, overdue items and the introductions logged this month.', 'medium',
+     (date_trunc('month', d0) + interval '1 month 4 days')::date, f, p_cor, 'manual', 'FREQ=MONTHLY', t0 - interval '6 days', true),
+    ('Weekly pipeline review', 'Walk every open deal: next step, owner, date.', 'medium', d0 + 4, m, null, 'manual', 'FREQ=WEEKLY', t0 - interval '6 days', true);
+
+  perform pg_temp.act(f, t0 - interval '12 days');
+  insert into public.interactions (organization_id, contact_id, deal_id, kind, occurred_on, summary, is_demo) values
+    (o_pjm, c_pat, d_dod, 'call', d0 - 12, 'Walked through the Dodoma site list. Site visit to be scheduled.', true);
+  perform pg_temp.act(m, t0 - interval '9 days');
+  insert into public.interactions (organization_id, deal_id, kind, occurred_on, summary, is_demo) values
+    (o_fam, d_dla, 'meeting', d0 - 9, 'Reviewed the Douala term sheet structure. Mark-up to follow from Lantana.', true);
+  perform pg_temp.act(m, t0 - interval '22 days');
+  insert into public.interactions (organization_id, deal_id, kind, occurred_on, summary, is_demo) values
+    (o_gs, d_mau, 'visit', d0 - 22, 'Discussed urea, NPK and DAP availability for the Mauritania proposal.', true);
+  perform pg_temp.act(f, t0 - interval '15 days');
+  insert into public.interactions (organization_id, kind, occurred_on, summary, is_demo) values
+    (o_fam, 'email', d0 - 15, 'Asked Faminas for the mandate signatory name and registered address.', true);
+
+  perform pg_temp.act(m, t0 - interval '5 days');
+  insert into public.notes (entity_type, entity_id, body, pinned, created_by, is_demo) values
+    ('organization', o_fam, 'Mandate signatory and registered address are still outstanding. Do not treat the mandate as fully executed until both are in.', true, m, true),
+    ('organization', o_pjm, 'NCNDA signed by Patrick Joseph Muwowo. We still need evidence he can bind PJM Advisory.', true, f, true),
+    ('deal', d_mau, 'Volumes and delivery schedule depend on the Ministry''s feedback. Keep Global Sphere updated before quoting prices.', false, m, true);
+
   -- Tidy up session state so nothing after this runs as a demo user.
   perform set_config('request.jwt.claims', '', false);
   perform set_config('app.occurred_at', '', false);

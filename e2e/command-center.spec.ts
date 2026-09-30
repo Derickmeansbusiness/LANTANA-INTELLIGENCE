@@ -71,7 +71,7 @@ test.describe("principal", () => {
   });
 
   test("every module page renders", async ({ page }) => {
-    for (const path of ["/deals", "/partners", "/tasks", "/documents", "/contracts", "/people", "/finance", "/compliance", "/reports", "/agent"]) {
+    for (const path of ["/documents", "/contracts", "/people", "/finance", "/compliance", "/reports", "/agent"]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { name: /Arrives in Phase \d/ }).filter({ visible: true })).toBeVisible();
     }

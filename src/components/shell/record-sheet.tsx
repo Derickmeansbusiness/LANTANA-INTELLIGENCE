@@ -2,11 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getRecordPreview } from "@/server/actions/records";
 import type { RecordPreview } from "@/server/records-shared";
+
+const FULL_PAGE: Partial<Record<RecordPreview["type"], (r: RecordPreview) => string>> = {
+  deal: (r) => `/deals/${r.id}`,
+  organization: (r) => `/partners/${r.id}`,
+  contact: (r) => `/partners?tab=contacts&q=${encodeURIComponent(r.title)}`,
+};
 
 /**
  * Opens whenever the URL carries ?record=<type>:<uuid>, so any list, search
@@ -16,7 +24,9 @@ export function RecordSheet() {
   const sp = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const param = sp.get("record");
+  const raw = sp.get("record");
+  // Tasks have their own editable sheet (TaskSheet).
+  const param = raw?.startsWith("task:") ? null : raw;
   const [type, id] = param?.split(":") ?? [];
   // Keyed by the URL param so a new record shows the skeleton, not the old one.
   const [loaded, setLoaded] = useState<{ key: string; record: RecordPreview | "missing" } | null>(null);
@@ -98,9 +108,17 @@ export function RecordSheet() {
                   </ul>
                 </div>
               ))}
-            <p className="border-t px-6 py-4 text-xs text-muted-foreground">
-              Read-only preview. Editing and the full record page arrive in Phase {record.fullPagePhase}.
-            </p>
+            {FULL_PAGE[record.type] ? (
+              <div className="border-t px-6 py-4">
+                <Button asChild size="sm" variant="outline">
+                  <Link href={FULL_PAGE[record.type]!(record)}>Open full page</Link>
+                </Button>
+              </div>
+            ) : (
+              <p className="border-t px-6 py-4 text-xs text-muted-foreground">
+                Read-only preview. Editing and the full record page arrive in Phase {record.fullPagePhase}.
+              </p>
+            )}
           </div>
         )}
       </SheetContent>

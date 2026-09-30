@@ -5,6 +5,10 @@ import { existsSync } from "node:fs";
 const localChromium = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
 const executablePath = process.env.PW_CHROMIUM ?? (existsSync(localChromium) ? localChromium : undefined);
 
+// One id per `playwright test` invocation, shared by every worker (workers are
+// restarted after a failure, so a module-level Date.now() would change mid-run).
+process.env.E2E_RUN ??= Date.now().toString(36).slice(-5);
+
 export default defineConfig({
   testDir: "e2e",
   fullyParallel: false,
