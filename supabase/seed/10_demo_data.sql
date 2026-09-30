@@ -506,6 +506,27 @@ begin
     ('organization', o_pjm, 'NCNDA signed by Patrick Joseph Muwowo. We still need evidence he can bind PJM Advisory.', true, f, true),
     ('deal', d_mau, 'Volumes and delivery schedule depend on the Ministry''s feedback. Keep Global Sphere updated before quoting prices.', false, m, true);
 
+  -- -------------------------------------------------------------------------
+  -- Phase 3 additions: contract owners, tags, one standing obligation
+  -- -------------------------------------------------------------------------
+  perform pg_temp.act(m, t0 - interval '1 day');
+  update public.contracts set owner_id = f where id in (k_pjm, k_fai, k_rak);
+  update public.contracts set owner_id = m where id = k_fam;
+
+  insert into public.tags (name, is_demo) values ('NCNDA', true), ('Mandate', true), ('Tanzania', true), ('Mauritania', true), ('Signed copy needed', true);
+  insert into public.document_tags (document_id, tag_id)
+  select v.doc, t.id from (values
+      (doc_pjm, 'NCNDA'), (doc_pjm, 'Tanzania'), (doc_pjm, 'Signed copy needed'),
+      (doc_fai, 'NCNDA'), (doc_fai, 'Signed copy needed'),
+      (doc_fam, 'Mandate'), (doc_mau, 'Mauritania'), (doc_rak, 'Signed copy needed')) as v(doc, tag)
+  join public.tags t on t.name = v.tag and t.is_demo;
+
+  -- The Morogoro data room index is linked to the deal, so staff on the deal can see it.
+  insert into public.document_links (document_id, entity_type, entity_id) values (doc_pjm, 'deal', d_mor);
+
+  insert into public.contract_obligations (contract_id, description, owner_id, is_demo)
+  values (k_pjm, 'Agree Lantana''s fee with PJM Advisory for each project before the SPV is formed', f, true);
+
   -- Tidy up session state so nothing after this runs as a demo user.
   perform set_config('request.jwt.claims', '', false);
   perform set_config('app.occurred_at', '', false);

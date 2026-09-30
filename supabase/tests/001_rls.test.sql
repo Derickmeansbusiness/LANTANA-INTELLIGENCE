@@ -33,8 +33,10 @@ select is((select count(*)::int from public.contracts), 0, 'staff: no contracts'
 select is((select count(*)::int from public.invoices), 0, 'staff: no invoices');
 select is((select count(*)::int from public.compliance_items), 0, 'staff: no compliance items');
 select is((select count(*)::int from public.deals), 1, 'staff: only the assigned deal');
-select is((select count(*)::int from public.documents where confidentiality in ('confidential', 'restricted')), 0,
-          'staff: no confidential documents');
+select is((select count(*)::int from public.documents d where confidentiality in ('confidential', 'restricted')
+           and not exists (select 1 from public.document_links l where l.document_id = d.id and l.entity_type = 'deal'
+                           and l.entity_id = 'd0000000-0000-4000-8000-000000000003')), 0,
+          'staff: no confidential documents beyond those linked to their deal');
 select is((select count(*)::int from public.activity_events where scope = 'management'), 0,
           'staff: no management-scope activity');
 select is((public.command_center_kpis(current_date - 7, current_date, 2) -> 'series' -> 1 ->> 'cash_aed'), null,

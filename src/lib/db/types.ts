@@ -61,6 +61,19 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"alerts_sent": {
+                  Row: {
+                    "entity_id": string,"entity_type": string,"id": number,"kind": string,"sent_at": string,"target_date": string,"threshold_days": number
+                  }
+                  Insert: {
+                    "entity_id": string,"entity_type": string,"id"?: never,"kind": string,"sent_at"?: string,"target_date": string,"threshold_days": number
+                  }
+                  Update: {
+                    "entity_id"?: string,"entity_type"?: string,"id"?: never,"kind"?: string,"sent_at"?: string,"target_date"?: string,"threshold_days"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"audit_log": {
                   Row: {
                     "action": string,"actor_id": string | null,"after": Json | null,"before": Json | null,"context": NonNullable<Json>,"id": number,"occurred_at": string,"row_id": string | null,"table_name": string | null
@@ -238,13 +251,13 @@ isOneToOne: false
                   ]
                 },"contracts": {
                   Row: {
-                    "contract_type": Database["public"]['Enums']["contract_type"],"counterparty_address_confirmed": boolean,"counterparty_org_id": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"document_id": string | null,"effective_date": string | null,"end_date": string | null,"esign_status": string | null,"exclusivity": string | null,"fee_terms": string | null,"forum": string | null,"governing_law": string | null,"id": string,"is_demo": boolean,"notes": string | null,"notice_period_days": number | null,"renewal_type": Database["public"]['Enums']["renewal_type"],"signatory_confirmed": boolean,"signatory_name": string | null,"signing_authority_confirmed": boolean,"status": Database["public"]['Enums']["contract_status"],"term_months": number | null,"title": string,"updated_at": string
+                    "contract_type": Database["public"]['Enums']["contract_type"],"counterparty_address_confirmed": boolean,"counterparty_org_id": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"document_id": string | null,"effective_date": string | null,"end_date": string | null,"esign_status": string | null,"exclusivity": string | null,"fee_terms": string | null,"forum": string | null,"governing_law": string | null,"id": string,"is_demo": boolean,"notes": string | null,"notice_period_days": number | null,"owner_id": string | null,"renewal_type": Database["public"]['Enums']["renewal_type"],"signatory_confirmed": boolean,"signatory_name": string | null,"signing_authority_confirmed": boolean,"status": Database["public"]['Enums']["contract_status"],"term_months": number | null,"title": string,"updated_at": string
                   }
                   Insert: {
-                    "contract_type": Database["public"]['Enums']["contract_type"],"counterparty_address_confirmed"?: boolean,"counterparty_org_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"document_id"?: string | null,"effective_date"?: string | null,"end_date"?: string | null,"esign_status"?: string | null,"exclusivity"?: string | null,"fee_terms"?: string | null,"forum"?: string | null,"governing_law"?: string | null,"id"?: string,"is_demo"?: boolean,"notes"?: string | null,"notice_period_days"?: number | null,"renewal_type"?: Database["public"]['Enums']["renewal_type"],"signatory_confirmed"?: boolean,"signatory_name"?: string | null,"signing_authority_confirmed"?: boolean,"status"?: Database["public"]['Enums']["contract_status"],"term_months"?: number | null,"title": string,"updated_at"?: string
+                    "contract_type": Database["public"]['Enums']["contract_type"],"counterparty_address_confirmed"?: boolean,"counterparty_org_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"document_id"?: string | null,"effective_date"?: string | null,"end_date"?: string | null,"esign_status"?: string | null,"exclusivity"?: string | null,"fee_terms"?: string | null,"forum"?: string | null,"governing_law"?: string | null,"id"?: string,"is_demo"?: boolean,"notes"?: string | null,"notice_period_days"?: number | null,"owner_id"?: string | null,"renewal_type"?: Database["public"]['Enums']["renewal_type"],"signatory_confirmed"?: boolean,"signatory_name"?: string | null,"signing_authority_confirmed"?: boolean,"status"?: Database["public"]['Enums']["contract_status"],"term_months"?: number | null,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "contract_type"?: Database["public"]['Enums']["contract_type"],"counterparty_address_confirmed"?: boolean,"counterparty_org_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"document_id"?: string | null,"effective_date"?: string | null,"end_date"?: string | null,"esign_status"?: string | null,"exclusivity"?: string | null,"fee_terms"?: string | null,"forum"?: string | null,"governing_law"?: string | null,"id"?: string,"is_demo"?: boolean,"notes"?: string | null,"notice_period_days"?: number | null,"renewal_type"?: Database["public"]['Enums']["renewal_type"],"signatory_confirmed"?: boolean,"signatory_name"?: string | null,"signing_authority_confirmed"?: boolean,"status"?: Database["public"]['Enums']["contract_status"],"term_months"?: number | null,"title"?: string,"updated_at"?: string
+                    "contract_type"?: Database["public"]['Enums']["contract_type"],"counterparty_address_confirmed"?: boolean,"counterparty_org_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"document_id"?: string | null,"effective_date"?: string | null,"end_date"?: string | null,"esign_status"?: string | null,"exclusivity"?: string | null,"fee_terms"?: string | null,"forum"?: string | null,"governing_law"?: string | null,"id"?: string,"is_demo"?: boolean,"notes"?: string | null,"notice_period_days"?: number | null,"owner_id"?: string | null,"renewal_type"?: Database["public"]['Enums']["renewal_type"],"signatory_confirmed"?: boolean,"signatory_name"?: string | null,"signing_authority_confirmed"?: boolean,"status"?: Database["public"]['Enums']["contract_status"],"term_months"?: number | null,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -264,6 +277,12 @@ isOneToOne: false
       columns: ["document_id"]
 isOneToOne: false
       referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "contracts_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
       referencedColumns: ["id"]
     }
                   ]
@@ -465,6 +484,31 @@ isOneToOne: false
       referencedColumns: ["key"]
     }
                   ]
+                },"document_chunks": {
+                  Row: {
+                    "content": string,"created_at": string,"document_id": string,"embedding": string | null,"id": number,"ordinal": number,"tsv": unknown,"version_id": string
+                  }
+                  Insert: {
+                    "content": string,"created_at"?: string,"document_id": string,"embedding"?: string | null,"id"?: never,"ordinal": number,"tsv"?: never,"version_id": string
+                  }
+                  Update: {
+                    "content"?: string,"created_at"?: string,"document_id"?: string,"embedding"?: string | null,"id"?: never,"ordinal"?: number,"tsv"?: never,"version_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "document_chunks_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "document_chunks_version_id_fkey"
+      columns: ["version_id"]
+isOneToOne: false
+      referencedRelation: "document_versions"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"document_links": {
                   Row: {
                     "created_at": string,"created_by": string | null,"document_id": string,"entity_id": string,"entity_type": string
@@ -490,15 +534,102 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"document_versions": {
+                },"document_share_links": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"document_id": string,"file_name": string,"id": string,"is_demo": boolean,"mime_type": string | null,"sha256": string | null,"size_bytes": number | null,"storage_path": string,"version_no": number
+                    "created_at": string,"created_by": string,"document_id": string,"expires_at": string,"id": string,"is_demo": boolean,"max_views": number | null,"recipient_email": string | null,"recipient_name": string,"revoked_at": string | null,"revoked_by": string | null,"token_hash": string,"version_id": string,"view_count": number
                   }
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"document_id": string,"file_name": string,"id"?: string,"is_demo"?: boolean,"mime_type"?: string | null,"sha256"?: string | null,"size_bytes"?: number | null,"storage_path": string,"version_no": number
+                    "created_at"?: string,"created_by"?: string,"document_id": string,"expires_at": string,"id"?: string,"is_demo"?: boolean,"max_views"?: number | null,"recipient_email"?: string | null,"recipient_name": string,"revoked_at"?: string | null,"revoked_by"?: string | null,"token_hash": string,"version_id": string,"view_count"?: number
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"document_id"?: string,"file_name"?: string,"id"?: string,"is_demo"?: boolean,"mime_type"?: string | null,"sha256"?: string | null,"size_bytes"?: number | null,"storage_path"?: string,"version_no"?: number
+                    "created_at"?: string,"created_by"?: string,"document_id"?: string,"expires_at"?: string,"id"?: string,"is_demo"?: boolean,"max_views"?: number | null,"recipient_email"?: string | null,"recipient_name"?: string,"revoked_at"?: string | null,"revoked_by"?: string | null,"token_hash"?: string,"version_id"?: string,"view_count"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "document_share_links_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "document_share_links_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "document_share_links_revoked_by_fkey"
+      columns: ["revoked_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "document_share_links_version_id_fkey"
+      columns: ["version_id"]
+isOneToOne: false
+      referencedRelation: "document_versions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"document_share_views": {
+                  Row: {
+                    "id": number,"ip_hash": string | null,"link_id": string,"outcome": string,"user_agent": string | null,"viewed_at": string
+                  }
+                  Insert: {
+                    "id"?: never,"ip_hash"?: string | null,"link_id": string,"outcome": string,"user_agent"?: string | null,"viewed_at"?: string
+                  }
+                  Update: {
+                    "id"?: never,"ip_hash"?: string | null,"link_id"?: string,"outcome"?: string,"user_agent"?: string | null,"viewed_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "document_share_views_link_id_fkey"
+      columns: ["link_id"]
+isOneToOne: false
+      referencedRelation: "document_share_links"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"document_tags": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"document_id": string,"tag_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"document_id": string,"tag_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"document_id"?: string,"tag_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "document_tags_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "document_tags_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "document_tags_tag_id_fkey"
+      columns: ["tag_id"]
+isOneToOne: false
+      referencedRelation: "tags"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"document_versions": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"document_id": string,"embedded": boolean,"extraction_status": string,"file_name": string,"id": string,"is_demo": boolean,"mime_type": string | null,"note": string | null,"ocr_used": boolean,"page_count": number | null,"sha256": string | null,"size_bytes": number | null,"storage_path": string,"text_chars": number | null,"version_no": number
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"document_id": string,"embedded"?: boolean,"extraction_status"?: string,"file_name": string,"id"?: string,"is_demo"?: boolean,"mime_type"?: string | null,"note"?: string | null,"ocr_used"?: boolean,"page_count"?: number | null,"sha256"?: string | null,"size_bytes"?: number | null,"storage_path": string,"text_chars"?: number | null,"version_no": number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"document_id"?: string,"embedded"?: boolean,"extraction_status"?: string,"file_name"?: string,"id"?: string,"is_demo"?: boolean,"mime_type"?: string | null,"note"?: string | null,"ocr_used"?: boolean,"page_count"?: number | null,"sha256"?: string | null,"size_bytes"?: number | null,"storage_path"?: string,"text_chars"?: number | null,"version_no"?: number
                   }
                   Relationships: [
                     {
@@ -962,6 +1093,25 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"tags": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"is_demo": boolean,"name": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"is_demo"?: boolean,"name": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"is_demo"?: boolean,"name"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tags_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"task_checklist_items": {
                   Row: {
                     "created_at": string,"created_by": string | null,"done": boolean,"id": string,"is_demo": boolean,"label": string,"sort_order": number,"task_id": string,"updated_at": string
@@ -1197,8 +1347,21 @@ isOneToOne: false
 "move_deal_stage":
 { Args: { "p_deal": string,"p_note"?: string,"p_stage": string }; Returns: undefined
                            },
+"open_share_link":
+{ Args: { "p_ip_hash"?: string,"p_token": string,"p_user_agent"?: string }; Returns: {
+              "document_title": string,"expires_at": string,"file_name": string,"link_id": string,"mime_type": string,"ok": boolean,"reason": string,"recipient_name": string,"storage_path": string,"views_left": number
+            }[]
+                           },
 "reveal_bank_account_iban":
 { Args: { "p_id": string }; Returns: string
+                           },
+"run_expiry_alerts_now":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"search_documents":
+{ Args: { "p_embedding"?: string,"p_limit"?: number,"p_query": string }; Returns: {
+              "doc_type": string,"document_id": string,"matched": string,"score": number,"snippet": string,"status": string,"title": string
+            }[]
                            },
 "search_everything":
 { Args: { "p_limit"?: number,"p_query": string }; Returns: {
