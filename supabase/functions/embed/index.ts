@@ -1,10 +1,24 @@
 // Embeds text with gte-small (384 dims), which ships inside Supabase's edge
-// runtime. JWT verification is on (config.toml), so only signed-in users of
-// this project can call it.
+// runtime. The gateway verifies the JWT signature (verify_jwt = true), but it
+// also accepts the public anon key, so we additionally require a signed-in
+// user's token (role "authenticated").
 const session = new Supabase.ai.Session("gte-small");
+
+function role(req: Request): string | null {
+  const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  const payload = token.split(".")[1];
+  if (!payload) return null;
+  try {
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "="));
+    return (JSON.parse(json) as { role?: string }).role ?? null;
+  } catch {
+    return null;
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
+  if (role(req) !== "authenticated") return Response.json({ error: "Sign in first" }, { status: 403 });
   let input: unknown;
   try {
     input = (await req.json()).input;

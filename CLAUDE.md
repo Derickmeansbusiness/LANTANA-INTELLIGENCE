@@ -7,12 +7,15 @@ Internal operating system for Lantana Vision FZ-LLC (RAKEZ, UAE). The full desig
 ## Current status
 - **Phase 1 (Foundation): done.** Schema, RLS, audit, seed, auth + MFA, shell, Ctrl+K, Command Center, Settings.
 - **Phase 2 (Deals, Partners, Tasks): done.** Deal board/table/forecast + record page (matcher, parties, team, notes, timeline), introductions ledger + dated PDF, partner directory + profiles + interactions, tasks (My day, list, board, calendar, timeline, projects), checklists, comments, dependencies, recurring tasks, saved views, CSV export.
-- **Next: Phase 3** (Documents vault, uploads, previews, templates on letterhead, contract register, semantic search).
-- Module pages for Phases 3–6 are placeholders (`src/components/module-page.tsx`). Bump `CURRENT_PHASE` in `src/components/shell/nav.ts` when a phase ships.
+- **Phase 3 (Documents, Contracts): done.** Vault (folders, tags, links, upload, versions, check-in/out, in-browser preview for PDF/DOCX/XLSX/images/text), text extraction + chunking + search, share links (expiring, view-limited, watermarked, logged), 8 letterhead templates as PDF or DOCX, contracts register + record page (key dates, obligations → tasks, survival clauses, flags), daily expiry alerts at 90/60/30/7 days.
+- **Next: Phase 4** (Ask Lantana agent, AI clause review, AI briefing).
+- Module pages for Phases 4–6 are placeholders (`src/components/module-page.tsx`). Bump `CURRENT_PHASE` in `src/components/shell/nav.ts` when a phase ships.
 
 ## Environments
 - **Local:** Supabase in Docker (`pnpm db:start`). Next dev on :3000.
-- **Hosted:** Supabase project `adrurfecdiobvyqdnalq` ("Lantana Command", ap-south-1 Mumbai, free tier). Schema only: no seed, no users yet. Principal MFA is required there.
+- **Hosted:** Supabase project `adrurfecdiobvyqdnalq` ("Lantana Command", ap-south-1 Mumbai, free tier). Schema only: no seed, no users yet. Principal MFA is required there. Migrations applied through 0810. Edge function `embed` (gte-small) is deployed there; this container can't reach `*.supabase.co`, so it hasn't been called end to end yet.
+- **Semantic search** needs the `embed` edge function. Locally it doesn't run (the model download from Hugging Face is blocked), so local search is full-text only and the UI says "keyword match". Deploy changes with the Supabase MCP `deploy_edge_function` (`verify_jwt: true`).
+- **OCR** runs only when `ANTHROPIC_API_KEY` is set, and only for files with no text layer (`src/server/documents/ocr.ts`). It uses server-side fallbacks (`server-side-fallback-2026-07-01`) so an overloaded model falls back instead of failing.
 - Migrations reach the hosted project through the Supabase MCP `apply_migration` (the CLI can't reach Postgres from the cloud dev container). Keep `supabase/migrations/*` the source of truth and apply each new file there in order.
 
 ## Commands
@@ -24,21 +27,21 @@ pnpm db:types      # regenerate src/lib/db/types.ts after a migration
 pnpm dev           # http://localhost:3000
 pnpm typecheck     # next typegen && tsc --noEmit
 pnpm lint
-pnpm test          # vitest (money, dates)
+pnpm test          # vitest (money, dates, chunking, template catalog)
 pnpm test:e2e      # Playwright: 3 roles, 1440px + 375px, dark + light
 pnpm check         # typecheck + lint + unit + pgTAP
 pnpm map:build     # regenerate the Africa+GCC SVG paths
 node scripts/smoke.mjs <email> /path …   # sign in as a test user, open pages, report errors (SHOT=dir for screenshots)
 node scripts/fetch-as.mjs <email> /path out   # authenticated GET, e.g. the ledger PDF
 ```
-Reset the DB before `pnpm test:e2e`: the Phase 2 specs create records (names carry `E2E_RUN`).
+Reset the DB before `pnpm test:e2e`: the Phase 2 and 3 specs create records (names carry `E2E_RUN`).
 Cloud container notes: start Docker with `dockerd &` first. Playwright uses `/opt/pw-browsers/chromium-1194` automatically. Don't `pkill -f "next dev"` from a shell whose command line contains that string (it kills the shell).
 
 Local logins (password `lantana-dev-2026`): `maimouna@`, `fai@` (principals), `manager@`, `staff@` `lantana.test`. The user menu can switch between them when `NEXT_PUBLIC_ENABLE_DEV_LOGIN=true`.
 
 ## Non-negotiables
 - Build phase by phase (PLAN.md §9). Each phase must pass typecheck, lint, pgTAP RLS tests and the Playwright click-through (375px + desktop, light + dark) before the next one starts.
-- RLS is the security boundary. Never use the service-role key in a user request path.
+- RLS is the security boundary. Never use the service-role key in a user request path. That includes the public share page: it runs as `anon` and reads the file through the storage policy `lantana_docs_share_read` (see Conventions).
 - Sensitive data (compensation, bank accounts, ID numbers) lives in separate principal-only tables, pgcrypto-encrypted, with the key in Supabase Vault (`private.pii_key()`).
 - All business logic goes in `src/server/<module>`. Server actions and agent tools both call it.
 - Agent write tools create `agent_actions` proposals. They execute only on user confirmation, re-checking permissions. There is no delete tool.
@@ -52,15 +55,21 @@ Local logins (password `lantana-dev-2026`): `maimouna@`, `fai@` (principals), `m
 - **DB:** helpers live in the `private` schema (not exposed). Every business table has `is_demo`, `created_by default auth.uid()`, `deleted_at`, an `audit_row()` trigger and RLS. No DELETE policies on business records. The exceptions are link/preference rows (`deal_members`, `deal_parties`, `task_dependencies`, `task_checklist_items`, `saved_views`), which are still audited. SELECT policies don't filter `deleted_at` (that breaks `UPDATE … RETURNING` on soft delete), so queries and views filter it. `private.guard_archive()` stops anyone below manager from setting `deleted_at` (task/comment/note/interaction creators may archive their own).
 - **Domain layer:** `src/server/{deals,partners,relationships,tasks,ledger}.ts` take the caller's `Db` client and return `ActionResult` (`src/lib/action-result.ts`). `src/server/actions/*` are thin `"use server"` wrappers that add `revalidatePath`. Zod schemas in `src/lib/schemas/*` are shared by forms and the server.
 - **PostgREST embeds:** hint with the FK constraint name (`profiles!deals_owner_id_fkey`), except self-references, which embed by column (`corrected:corrects_id(seq)`).
-- **Roles:** `private.is_principal()` = role principal AND (aal2 OR `company.require_principal_mfa` false). A principal at aal1 gets manager-level access. `private.is_manager_plus()`, `private.is_internal()`, `private.can_see_deal()`, `private.can_see_org()`.
-- **Views/RPCs** used by the UI are `security_invoker`, so they return only what the caller may see. The exceptions (`SECURITY DEFINER`, callable by signed-in users) check the role themselves: `log_event`, `set_user_role`, `wipe_demo_data`, `set/reveal_bank_account_iban`, `private.kpi_burn_aed`. The Supabase advisor flags these; that's expected.
+- **Roles:** `private.is_principal()` = role principal AND (aal2 OR `company.require_principal_mfa` false). A principal at aal1 gets manager-level access. `private.is_manager_plus()`, `private.is_internal()`, `private.can_see_deal()`, `private.can_see_org()`, `private.can_see_document()`, `private.can_write_document()`.
+- **RLS policies must read the row's own columns**, not re-query the table by id: a re-query can't see the row during `INSERT … RETURNING`. `doc_read` uses `private.doc_visible(id, confidentiality, created_by)` for this reason (pgTAP covers it).
+- **Documents:** visible to manager+; to anyone internal if public/internal; to the uploader; and to staff for non-restricted files linked to a deal they're on. Storage path is `<document_id>/<random uuid>/<safe file name>`; storage policies mirror the table (`lantana_docs_read/insert`). Stored versions are immutable (no update/delete policies). `version_no` is assigned by the database. Upload goes browser → storage under the user's session → `registerVersionAction` → ingestion in `after()` with the same user's token (`createTokenClient`). `document_chunks` is derived data and may be deleted and rebuilt.
+- **Share links:** only the sha256 of the token is stored; the token is shown once. `/s/<token>` is public (listed in `proxy.ts`), calls `open_share_link()` as `anon` (logs every attempt, bumps the view count), then reads the object through `lantana_docs_share_read`. That policy opens for 2 minutes after a logged successful view of that exact path, and closes on revoke. Only PDFs and PNG/JPEG can be shared, because only those are watermarked (pdf-lib, `src/server/documents/watermark.ts`). `anon` has `usage` on schema `private` for this one function, so **every migration must end with `revoke execute on all functions in schema private from public, anon`** and re-grant `private.share_object_open` to anon if it recreates it.
+- **Templates:** the catalog is pure data + `build()` in `src/lib/templates/catalog.ts` (unit-tested). It produces blocks (`src/lib/templates/types.ts`) that `src/server/templates/render-pdf.tsx` and `render-docx.ts` render. Output is saved into the vault as a draft document. In react-pdf, give any text with `lineHeight` an explicit `fontSize`: a unitless lineHeight resolves against the 18pt default, not the inherited size.
+- **Contracts** are manager+ (RLS); the pages return not-found for staff. `src/lib/contract-dates.ts` computes the key dates the UI shows; `private.run_expiry_alerts()` (pg_cron, 03:15 UTC = 07:15 Dubai) is the source of truth for alerts, one per threshold band per target date (`alerts_sent`). A dated obligation creates a task (trigger `obligations_to_task`); closing or waiving the obligation closes or cancels the task.
+- **Views/RPCs** used by the UI are `security_invoker`, so they return only what the caller may see. The exceptions (`SECURITY DEFINER`, callable by signed-in users) check the role themselves: `log_event`, `set_user_role`, `wipe_demo_data`, `set/reveal_bank_account_iban`, `run_expiry_alerts_now`, `verify_introductions_chain`, `private.kpi_burn_aed`. `open_share_link` is also callable by `anon` (the token is the credential). The Supabase advisor flags these; that's expected.
 - **Seeds/imports** can backdate events with `set_config('app.occurred_at', …)`; `private.event_time()` reads it.
 - **UI:** shadcn-style components are hand-written in `src/components/ui` (the shadcn registry is blocked from this container). Tokens are in `src/app/globals.css`. Gold is an accent only. Use the `num` utility for money and dates. Grid children need `min-w-0` (Card has it by default) or long text blows out mobile layouts.
-- **Records:** any record opens in the side sheet via `?record=<type>:<uuid>` (`src/components/shell/record-sheet.tsx`). Tasks open the editable `TaskSheet` via `?task=<uuid>` (or `?record=task:<uuid>`). Deals and organizations have full pages.
+- **Records:** any record opens in the side sheet via `?record=<type>:<uuid>` (`src/components/shell/record-sheet.tsx`). Tasks open the editable `TaskSheet` via `?task=<uuid>` (or `?record=task:<uuid>`). Deals, organizations, documents and contracts have full pages.
 - **Tables:** use `src/components/data-table/data-table.tsx` (TanStack Table **v8**, pinned; v9 has a different API). It gives search, facets, sorting, column visibility, saved views and CSV export (UTF-8 BOM, formula-injection safe).
 - **PDFs:** `@react-pdf/renderer`, letterhead in `src/server/pdf/letterhead.tsx`. Standard fonts only draw WinAnsi characters, so pass text through `pdfText()`. Hyphenation is off.
 - **Not found:** `src/app/(app)/not-found.tsx` covers both "doesn't exist" and "RLS hides it" on purpose. Status is 200 because `loading.tsx` starts streaming first; tests assert on content.
 - **Server actions:** `"use server"` files may only export async functions. Shared types go in a sibling module (e.g. `src/server/records-shared.ts`).
+- **Client/server boundary:** a server page can't call a function exported from a `"use client"` module (it gets a client reference). Put shared helpers in a plain module (`src/components/documents/format.ts`, `src/components/contracts/format.ts`).
 - **Next.js 16:** `proxy.ts` (not middleware), async `params`/`searchParams`/`cookies()`. Bundled docs are in `node_modules/next/dist/docs/`.
 
 ## Decisions log
@@ -73,7 +82,14 @@ Local logins (password `lantana-dev-2026`): `maimouna@`, `fai@` (principals), `m
 - Monthly burn is visible to managers in aggregate (payroll included). Individual payroll rows and bank balances are principal-only.
 - Compliance items are seeded as `unconfirmed` and only surface as "confirm whether this applies". Nothing drives alerts until a principal confirms it.
 - The Faminas mandate names DIFC-LCIA as forum. That centre was abolished by Dubai Decree No. 34 of 2021 (cases moved to DIAC). This is flagged in the contract notes for counsel.
-- Embeddings: Supabase built-in `gte-small` (free). OCR: Claude only for pages with no text layer. Both Phase 3.
+- Embeddings: Supabase built-in `gte-small` (free), via the `embed` edge function, which also requires role `authenticated` because the gateway accepts the public anon key. OCR: Claude only for files with no text layer. Search is hybrid (full text + vectors, reciprocal rank fusion) over the current version only, with title matches as a fallback.
+- No service-role key on the public share page: a time-boxed anon storage policy instead (see Conventions).
+- Only watermarkable formats (PDF, PNG, JPEG) can be shared externally. Word files must be exported to PDF first.
+- Share links last at most 30 days (the database allows 31), can be shortened or revoked, never extended or re-pointed.
+- The salary certificate template is locked until payroll exists (Phase 5): it may only be generated from a real payroll record. Invoices print only from recorded invoices; amounts are never typed into the template. Bank details are never printed on invoices.
+- Template wording defaults disputes to DIAC arbitration and every generated file is saved as a draft for counsel. Contracts whose forum names DIFC-LCIA get a flag on the register.
+- A new contract's owner defaults to whoever adds it, so alerts and obligation tasks always reach someone.
+- AI clause review is a disabled button until Phase 4.
 - The morning briefing is rule-based until Phase 4 and says so in the UI.
 - Closing a deal (won/lost) requires a reason; `move_deal_stage()` writes it onto the stage-history row.
 - The investor matcher is deliberately simple and explainable: sector 40, geography 30, ticket 30, with the reasons returned.
