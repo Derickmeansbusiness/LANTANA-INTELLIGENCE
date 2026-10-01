@@ -7,6 +7,7 @@ const ctx: BuildContext = {
   today: "2026-09-30",
   signatory: { name: "Maimouna Baba Danpullo", title: "Managing Director" },
   invoice: { invoice_no: "INV-1", kind: "success_fee", issue_date: "2026-09-01", due_date: "2026-09-30", currency: "USD", total: "USD 1.00", status: "sent", bill_to: "X", bill_to_country: null, deal: "Morogoro" },
+  salary: { full_name: "Test Staff", job_title: "Investment Analyst", start_date: "2026-04-01", nationality: "Cameroon", passport_no: "CM0000002", period: "September 2026", basic: "AED 5,000.00", allowances: "AED 2,700.00", gross: "AED 7,700.00" },
 };
 
 const sample = (id: string) =>
@@ -17,8 +18,11 @@ describe("template catalog", () => {
     expect(TEMPLATES.map((t) => t.id)).toEqual(["ncnda", "mandate", "salary_certificate", "loi", "engagement_letter", "invoice", "board_resolution", "proposal"]);
   });
 
-  it("keeps the salary certificate locked until payroll exists", () => {
-    expect(templateById("salary_certificate")!.unavailable).toMatch(/payroll/i);
+  it("makes the salary certificate principal-only, from a payroll record", () => {
+    const t = templateById("salary_certificate")!;
+    expect(t.principalOnly).toBe(true);
+    expect(t.fields.some((f) => f.name === "employee_id" && f.type === "select")).toBe(true);
+    expect(t.fields.some((f) => /salary|basic|amount/i.test(f.name))).toBe(false);
   });
 
   it.each(TEMPLATES.filter((t) => !t.unavailable).map((t) => t.id))("%s builds with a title, blocks and no empty text", (id) => {

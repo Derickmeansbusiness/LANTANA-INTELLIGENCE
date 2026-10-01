@@ -137,12 +137,44 @@ export const TEMPLATES: Template[] = [
   {
     id: "salary_certificate",
     name: "Salary Certificate",
-    description: "Confirms an employee's position and pay, addressed to a bank or embassy.",
+    description: "Confirms an employee's position and pay, addressed to a bank or embassy. Figures come from the latest paid payroll run, never typed in.",
     docType: "certificate",
     confidentiality: "restricted",
-    unavailable: "Available once payroll is live (Phase 5). A salary certificate may only be generated from an actual payroll record, never typed in.",
-    fields: [],
-    build: () => ({ title: "Salary certificate", blocks: [] }),
+    managerOnly: true,
+    principalOnly: true,
+    fields: [
+      { name: "employee_id", label: "Employee", type: "select", required: true, wide: true, options: [], hint: "Only people with a paid payroll run are listed." },
+      { name: "addressee", label: "Addressed to", type: "text", required: true, wide: true, default: "To whom it may concern" },
+      { name: "purpose", label: "Purpose", type: "text", wide: true, hint: "Optional, e.g. opening a bank account" },
+      ...signatory,
+    ],
+    build: (v, c) => {
+      const s = c.salary!;
+      const who = `${s.full_name}${s.nationality ? `, a national of ${s.nationality}` : ""}${s.passport_no ? ` holding passport no. ${s.passport_no}` : ""}`;
+      return {
+        title: `Salary certificate — ${s.full_name}`,
+        blocks: [
+          { kind: "title", text: "Salary certificate" },
+          { kind: "meta", rows: [["Date", d(c.today)], ["To", v.addressee]] },
+          {
+            kind: "para",
+            text: `This is to certify that ${who}, is employed by ${c.company.legal_name}${s.job_title ? ` as ${s.job_title}` : ""}${s.start_date ? ` since ${d(s.start_date)}` : ""}.`,
+          },
+          {
+            kind: "table",
+            head: ["Monthly pay", "Amount"],
+            align: ["left", "right"],
+            rows: [
+              ["Basic salary", s.basic],
+              ["Allowances", s.allowances],
+              ["Total monthly salary", s.gross],
+            ],
+          },
+          { kind: "para", text: `These figures are as paid through payroll for ${s.period}.${v.purpose ? ` This certificate is issued at the employee's request for ${v.purpose}.` : " This certificate is issued at the employee's request."} It carries no liability on the part of the company or its signatory.` },
+          { kind: "signatures", parties: [{ heading: `For ${c.company.legal_name}`, name: v.signatory_name, title: v.signatory_title }] },
+        ],
+      };
+    },
   },
   {
     id: "loi",

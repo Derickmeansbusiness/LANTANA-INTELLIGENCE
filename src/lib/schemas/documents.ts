@@ -14,7 +14,7 @@ export const documentSchema = z.object({
   expiry_date: optionalDate,
   description: optionalText(4000),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
-  links: z.array(z.object({ entity_type: z.enum(["deal", "organization", "contract", "project"]), entity_id: z.string().uuid() })).max(20).default([]),
+  links: z.array(z.object({ entity_type: z.enum(["deal", "organization", "contract", "project", "employee"]), entity_id: z.string().uuid() })).max(20).default([]),
 });
 
 export const versionSchema = z.object({

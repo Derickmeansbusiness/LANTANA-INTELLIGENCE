@@ -22,7 +22,13 @@ export default async function TemplatePage({ params, searchParams }: PageProps<"
   const db = await createClient();
   const form = await templateForm(db, id, session);
   if (!form) notFound();
-  const blocked = form.unavailable ?? (form.managerOnly && !session.isManagerPlus ? "Only a manager or principal can use this template." : null);
+  const blocked =
+    form.unavailable ??
+    (form.managerOnly && !session.isManagerPlus
+      ? "Only a manager or principal can use this template."
+      : form.principalOnly && !session.isPrincipal
+        ? "Only a principal can use this template: it prints pay from the payroll record."
+        : null);
   const targets = blocked ? [] : await linkTargets(db);
 
   return (

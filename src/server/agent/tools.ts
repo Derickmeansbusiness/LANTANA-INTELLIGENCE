@@ -338,8 +338,10 @@ const READ: ReadTool[] = [
         id: t.id,
         name: t.name,
         description: t.description,
-        available: !t.unavailable && (!t.managerOnly || session.isManagerPlus),
-        why_not: t.unavailable ?? (t.managerOnly && !session.isManagerPlus ? "managers and principals only" : undefined),
+        available: !t.unavailable && !t.principalOnly && (!t.managerOnly || session.isManagerPlus),
+        why_not:
+          t.unavailable ??
+          (t.principalOnly ? "contains pay data; a principal generates it from Documents → Templates" : t.managerOnly && !session.isManagerPlus ? "managers and principals only" : undefined),
         fields: t.fields.map((f) => ({ name: f.name, label: f.label, type: f.type, required: Boolean(f.required), options: f.options?.map((o) => o.value) })),
       })),
   },
@@ -470,6 +472,7 @@ const WRITE: WriteTool[] = [
       const t = templateById(i.template_id);
       if (!t) return { error: "Unknown template. Call list_templates." };
       if (t.unavailable) return { error: t.unavailable };
+      if (t.principalOnly) return { error: "This template prints pay data. A principal generates it from Documents → Templates, not through Ask Lantana." };
       if (t.managerOnly && !session.isManagerPlus) return { error: "Only a manager or principal can use this template." };
       const missing = t.fields.filter((f) => f.required && !f.default && !i.values?.[f.name]?.trim()).map((f) => f.label);
       if (missing.length) return { error: `Missing required fields: ${missing.join(", ")}. Ask the user for them.` };

@@ -38,7 +38,7 @@ export const NAV: NavItem[] = [
   { href: "/tasks", label: "Tasks & Projects", description: "Everything with an owner and a due date.", icon: CheckSquareIcon, roles: ALL, phase: 2, shortcut: "G T" },
   { href: "/documents", label: "Documents", description: "The vault: agreements, letters, templates and search.", icon: FolderLockIcon, roles: ALL, phase: 3 },
   { href: "/contracts", label: "Contracts", description: "Register, obligations, renewals and survival periods.", icon: ScrollTextIcon, roles: MGMT, phase: 3 },
-  { href: "/people", label: "People & HR", description: "Team, leave, visas and payroll.", icon: UsersIcon, roles: MGMT, phase: 5 },
+  { href: "/people", label: "People & HR", description: "Team directory, leave, visas and payroll.", icon: UsersIcon, roles: ALL, phase: 5 },
   { href: "/finance", label: "Finance", description: "Ledger, invoices, budgets and cash.", icon: LandmarkIcon, roles: MGMT, phase: 5 },
   { href: "/compliance", label: "Compliance", description: "Licences, filings, corporate records and expiries.", icon: ShieldCheckIcon, roles: MGMT, phase: 5 },
   { href: "/reports", label: "Reports", description: "Management packs, board packs and the report builder.", icon: BarChart3Icon, roles: MGMT, phase: 6 },

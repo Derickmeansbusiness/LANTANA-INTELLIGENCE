@@ -42,11 +42,25 @@ export type InvoiceData = {
   reference?: string | null;
 };
 
+/** What a salary certificate may state, from the latest paid payroll record. Already formatted. */
+export type SalaryData = {
+  full_name: string;
+  job_title: string | null;
+  start_date: string | null;
+  nationality: string | null;
+  passport_no: string | null;
+  period: string;
+  basic: string;
+  allowances: string;
+  gross: string;
+};
+
 export type BuildContext = {
   company: Company;
   today: string;
   signatory: { name: string; title: string };
   invoice?: InvoiceData;
+  salary?: SalaryData;
 };
 
 export type Template = {
@@ -60,5 +74,7 @@ export type Template = {
   unavailable?: string;
   /** Needs manager+ (and a record the caller can see). */
   managerOnly?: boolean;
+  /** Needs an MFA-verified principal (pay data). */
+  principalOnly?: boolean;
   build: (v: Record<string, string>, ctx: BuildContext) => { title: string; blocks: Block[] };
 };

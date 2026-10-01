@@ -24,7 +24,8 @@ export default async function TemplatesPage() {
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {TEMPLATES.map((t) => {
-          const blocked = t.unavailable ?? (t.managerOnly && !session.isManagerPlus ? "Managers and principals only." : null);
+          const blocked =
+            t.unavailable ?? (t.managerOnly && !session.isManagerPlus ? "Managers and principals only." : t.principalOnly && !session.isPrincipal ? "Principals only." : null);
           const body = (
             <Card className={blocked ? "h-full opacity-70" : "h-full transition-colors hover:border-gold/60"}>
               <CardContent className="flex h-full flex-col gap-2 pt-4">
