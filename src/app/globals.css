@@ -35,6 +35,9 @@
   --gold-ink: #8c6420; /* gold readable as text on light surfaces */
   --gold-wash: color-mix(in oklab, var(--brand-gold) 14%, transparent);
   --chart-grid: #ece6db;
+  /* Two-series charts (money in / money out). Validated for CVD and contrast per theme. */
+  --chart-in: #4f8cc9;
+  --chart-out: #c99a3e;
   --map-land: #ebe4d8;
   --map-land-stroke: #d9d0c1;
 }
@@ -52,6 +55,8 @@
   --gold-ink: #d4a045;
   --gold-wash: color-mix(in oklab, var(--brand-gold) 12%, transparent);
   --chart-grid: #2a262f;
+  --chart-in: #5a93cf;
+  --chart-out: #b8882f;
   --map-land: #2b2631;
   --map-land-stroke: #453e4c;
 }

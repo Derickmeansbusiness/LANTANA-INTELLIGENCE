@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       generatedBy: me?.full_name ?? "Unknown user",
       scope: deal.data ? `Deal: ${deal.data.name}` : "All introductions you can see",
       chain: chain ? (includesDemo && !rows.some((r) => !r.is_demo) ? chain.demo : chain.real) : null,
-      address: [company?.legal_name ?? "Lantana Vision FZ-LLC", ...(company?.address_lines ?? []), company?.licence_no ? `Licence ${company.licence_no}` : ""].filter(Boolean),
+      address: [company?.legal_name ?? "Lantana Vision FZ-LLC", ...(company?.address_lines ?? []), company?.licence_no ? `${company.licence_no.includes(",") ? "Licences" : "Licence"} ${company.licence_no}` : ""].filter(Boolean),
     }),
   );
 

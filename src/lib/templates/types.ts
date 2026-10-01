@@ -35,6 +35,11 @@ export type InvoiceData = {
   bill_to: string;
   bill_to_country: string | null;
   deal: string | null;
+  /** Invoice lines, already formatted. Absent on older invoices recorded as a single total. */
+  lines?: { description: string; quantity: string; unit_price: string; amount: string }[];
+  subtotal?: string;
+  vat?: { rate: string; amount: string } | null;
+  reference?: string | null;
 };
 
 export type BuildContext = {

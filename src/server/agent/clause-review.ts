@@ -65,7 +65,7 @@ function templateText(templateId: string) {
   );
   values.date = todayDubai();
   const built = t.build(values, {
-    company: { legal_name: "Lantana Vision FZ-LLC", licence_no: "FDCW2089", licensing_authority: "RAKEZ", address_lines: ["Ras Al Khaimah, UAE"], website: null },
+    company: { legal_name: "Lantana Vision FZ-LLC", licence_no: "7015890, 45033268, 47027560", licensing_authority: "RAKEZ", address_lines: ["Ras Al Khaimah, UAE"], website: null },
     today: todayDubai(),
     signatory: { name: "[Lantana signatory]", title: "[Title]" },
   });

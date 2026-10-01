@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { TEMPLATES, checkValues, templateById } from "./catalog";
+import { TEMPLATES, checkValues, licenceClause, templateById } from "./catalog";
 import type { BuildContext } from "./types";
 
 const ctx: BuildContext = {
-  company: { legal_name: "Lantana Vision FZ-LLC", licence_no: "FDCW2089", licensing_authority: "RAKEZ", address_lines: ["Ras Al Khaimah"], website: null },
+  company: { legal_name: "Lantana Vision FZ-LLC", licence_no: "7015890, 45033268, 47027560", licensing_authority: "RAKEZ", address_lines: ["Ras Al Khaimah"], website: null },
   today: "2026-09-30",
   signatory: { name: "Maimouna Baba Danpullo", title: "Managing Director" },
   invoice: { invoice_no: "INV-1", kind: "success_fee", issue_date: "2026-09-01", due_date: "2026-09-30", currency: "USD", total: "USD 1.00", status: "sent", bill_to: "X", bill_to_country: null, deal: "Morogoro" },
@@ -41,5 +41,13 @@ describe("template catalog", () => {
     const { errors } = checkValues(templateById("ncnda")!, { date: "30/09/2026" });
     expect(errors.cp_name).toBe("Required");
     expect(errors.date).toBe("Use a valid date");
+  });
+});
+
+describe("licenceClause", () => {
+  it("names one licence in the singular and several in the plural", () => {
+    expect(licenceClause("7015890")).toBe("licence no. 7015890");
+    expect(licenceClause("7015890, 45033268, 47027560")).toBe("licence nos. 7015890, 45033268 and 47027560");
+    expect(licenceClause(null)).toBe("");
   });
 });

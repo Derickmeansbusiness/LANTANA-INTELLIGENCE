@@ -51,7 +51,10 @@ export async function templateForm(db: Db, id: string, session: SessionContext) 
 async function loadInvoice(db: Db, id: string): Promise<InvoiceData | null> {
   const { data } = await db
     .from("invoices")
-    .select("invoice_no, kind, issue_date, due_date, currency, total_minor, status, org:organizations(name, country_info:countries(name)), deal:deals(name)")
+    .select(
+      "invoice_no, kind, issue_date, due_date, currency, subtotal_minor, vat_rate, vat_minor, total_minor, status, reference, " +
+        "org:organizations(name, country_info:countries(name)), deal:deals(name), items:invoice_items(position, description, quantity, unit_price_minor, amount_minor)",
+    )
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle<{
@@ -60,10 +63,15 @@ async function loadInvoice(db: Db, id: string): Promise<InvoiceData | null> {
       issue_date: string;
       due_date: string;
       currency: string;
+      subtotal_minor: number | null;
+      vat_rate: number;
+      vat_minor: number;
       total_minor: number;
       status: string;
+      reference: string | null;
       org: { name: string; country_info: { name: string } | null } | null;
       deal: { name: string } | null;
+      items: { position: number; description: string; quantity: number; unit_price_minor: number; amount_minor: number }[];
     }>();
   if (!data) return null;
   return {
@@ -77,6 +85,17 @@ async function loadInvoice(db: Db, id: string): Promise<InvoiceData | null> {
     bill_to: data.org?.name ?? "—",
     bill_to_country: data.org?.country_info?.name ?? null,
     deal: data.deal?.name ?? null,
+    reference: data.reference,
+    lines: [...data.items]
+      .sort((a, b) => a.position - b.position)
+      .map((l) => ({
+        description: l.description,
+        quantity: String(Number(l.quantity)),
+        unit_price: formatMoney(toMajor(l.unit_price_minor, data.currency), data.currency),
+        amount: formatMoney(toMajor(l.amount_minor, data.currency), data.currency),
+      })),
+    subtotal: data.subtotal_minor != null ? formatMoney(toMajor(data.subtotal_minor, data.currency), data.currency) : undefined,
+    vat: Number(data.vat_rate) > 0 ? { rate: String(Number(data.vat_rate)), amount: formatMoney(toMajor(data.vat_minor, data.currency), data.currency) } : null,
   };
 }
 

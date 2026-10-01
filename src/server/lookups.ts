@@ -32,3 +32,8 @@ export async function currencyOptions(db: Db): Promise<Option[]> {
   const { data } = await db.from("currencies").select("code, name").order("code");
   return (data ?? []).map((c) => ({ value: c.code, label: `${c.code} · ${c.name}` }));
 }
+
+export async function dealOptions(db: Db): Promise<Option[]> {
+  const { data } = await db.from("deals").select("id, name").is("deleted_at", null).order("name");
+  return (data ?? []).map((d) => ({ value: d.id, label: d.name }));
+}

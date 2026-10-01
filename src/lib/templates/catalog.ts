@@ -18,9 +18,17 @@ const lines = (s: string | undefined) =>
     .map((l) => l.replace(/^[-•*\d.)\s]+/, "").trim())
     .filter(Boolean);
 
+/** "licence no. 7015890" or "licence nos. 7015890, 45033268 and 47027560". */
+export const licenceClause = (licenceNo: string | null) => {
+  const nos = (licenceNo ?? "").split(/\s*[,;]\s*/).filter(Boolean);
+  if (nos.length === 0) return "";
+  if (nos.length === 1) return `licence no. ${nos[0]}`;
+  return `licence nos. ${nos.slice(0, -1).join(", ")} and ${nos[nos.length - 1]}`;
+};
+
 const lantanaParty = (c: BuildContext) =>
   `${c.company.legal_name}, a free zone limited liability company licensed by ${c.company.licensing_authority ?? "RAKEZ"}${
-    c.company.licence_no ? ` under licence no. ${c.company.licence_no}` : ""
+    c.company.licence_no ? ` under ${licenceClause(c.company.licence_no)}` : ""
   }, of ${c.company.address_lines.join(", ")} ("Lantana")`;
 
 const counterparty = (name: string, jurisdiction: string | undefined, address: string | undefined, short: string) =>
@@ -226,25 +234,38 @@ export const TEMPLATES: Template[] = [
       return {
         title: `Invoice ${inv.invoice_no}`,
         blocks: [
-          { kind: "title", text: "Invoice", sub: inv.invoice_no },
+          { kind: "title", text: inv.status === "draft" ? "Draft invoice" : "Invoice", sub: inv.invoice_no },
           {
             kind: "meta",
             rows: [
               ["Bill to", [inv.bill_to, inv.bill_to_country].filter(Boolean).join(", ")],
               ["Issue date", d(inv.issue_date)],
               ["Due date", d(inv.due_date)],
+              ...(inv.reference ? ([["Your reference", inv.reference]] as [string, string][]) : []),
               ...(inv.deal ? ([["Deal", inv.deal]] as [string, string][]) : []),
             ],
           },
-          {
-            kind: "table",
-            head: ["Description", "Amount"],
-            align: ["left", "right"],
-            rows: [
-              [`${inv.kind === "success_fee" ? "Success fee" : inv.kind === "retainer" ? "Retainer" : inv.kind === "advisory" ? "Advisory services" : "Services"}${inv.deal ? ` — ${inv.deal}` : ""}`, inv.total],
-              ["Total due", inv.total],
-            ],
-          },
+          inv.lines?.length
+            ? {
+                kind: "table",
+                head: ["Description", "Qty", "Unit price", "Amount"],
+                align: ["left", "right", "right", "right"],
+                rows: [
+                  ...inv.lines.map((l) => [l.description, l.quantity, l.unit_price, l.amount]),
+                  ["Subtotal", "", "", inv.subtotal ?? inv.total],
+                  ...(inv.vat ? [[`VAT ${inv.vat.rate}%`, "", "", inv.vat.amount]] : []),
+                  ["Total due", "", "", inv.total],
+                ],
+              }
+            : {
+                kind: "table",
+                head: ["Description", "Amount"],
+                align: ["left", "right"],
+                rows: [
+                  [`${inv.kind === "success_fee" ? "Success fee" : inv.kind === "retainer" ? "Retainer" : inv.kind === "advisory" ? "Advisory services" : "Services"}${inv.deal ? ` — ${inv.deal}` : ""}`, inv.total],
+                  ["Total due", inv.total],
+                ],
+              },
           ...(v.notes ? ([{ kind: "para", text: v.notes }] as Block[]) : []),
           { kind: "note", text: `Please quote ${inv.invoice_no} with your payment. Bank details are confirmed separately by a Lantana principal; never act on changed bank details received by email alone.` },
         ],
@@ -270,7 +291,7 @@ export const TEMPLATES: Template[] = [
       title: `Board Resolution — ${v.subject}`,
       blocks: [
         { kind: "title", text: "Written Resolution of the Board of Directors", sub: c.company.legal_name },
-        { kind: "meta", rows: [["Date", d(v.date)], ["Place", v.place], ["Licence", `${c.company.licensing_authority ?? "RAKEZ"} ${c.company.licence_no ?? ""}`.trim()], ["Subject", v.subject]] },
+        { kind: "meta", rows: [["Date", d(v.date)], ["Place", v.place], [c.company.licence_no?.includes(",") ? "Licences" : "Licence", `${c.company.licensing_authority ?? "RAKEZ"} ${c.company.licence_no ?? ""}`.trim()], ["Subject", v.subject]] },
         ...(v.recitals ? ([{ kind: "heading", text: "Background" }, { kind: "para", text: v.recitals }] as Block[]) : []),
         { kind: "heading", text: "It is resolved that" },
         { kind: "list", items: lines(v.resolutions), numbered: true },
