@@ -35,9 +35,25 @@ export function fmtDate(iso: string | null | undefined, pattern = "d MMM yyyy") 
   return format(parseISO(iso), pattern);
 }
 
-/** Format a timestamp in Dubai time. */
+/**
+ * Parse a timestamp from the database or Realtime. Accepts ISO and Postgres
+ * text forms ("2026-10-01 12:30:00.123456+00"); returns null when unparseable.
+ */
+export function parseTs(ts: string | Date | null | undefined): Date | null {
+  if (ts == null) return null;
+  if (ts instanceof Date) return Number.isNaN(ts.getTime()) ? null : ts;
+  let d = new Date(ts);
+  if (Number.isNaN(d.getTime())) {
+    const norm = ts.trim().replace(" ", "T").replace(/(\.\d{3})\d+/, "$1").replace(/([+-]\d{2})$/, "$1:00");
+    d = new Date(norm);
+  }
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Format a timestamp in Dubai time ("—" if it can't be read). */
 export function fmtDubai(ts: string | Date, pattern = "d MMM, HH:mm") {
-  return format(new TZDate(typeof ts === "string" ? new Date(ts) : ts, TZ), pattern);
+  const d = parseTs(ts);
+  return d ? format(new TZDate(d, TZ), pattern) : "—";
 }
 
 export function greeting(now: Date = new Date()) {
@@ -48,7 +64,9 @@ export function greeting(now: Date = new Date()) {
 }
 
 export function relativeTime(ts: string, now: Date = new Date()) {
-  const s = Math.round((now.getTime() - new Date(ts).getTime()) / 1000);
+  const at = parseTs(ts);
+  if (!at) return "just now";
+  const s = Math.round((now.getTime() - at.getTime()) / 1000);
   if (s < 60) return "just now";
   const m = Math.round(s / 60);
   if (m < 60) return `${m}m ago`;

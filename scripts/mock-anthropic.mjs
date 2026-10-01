@@ -62,7 +62,9 @@ function plan(body) {
   if (q.includes("pipeline")) return { tool: { name: "pipeline_summary", input: {} } };
   if (q.includes("remind") || q.includes("create a task")) {
     const due = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
-    return { text: "I'll set that up.", tool: { name: "create_task", input: { title: "Call PJM Advisory about the fee agreement", due_date: due, priority: "high" } } };
+    const ref = q.match(/\bref ([a-z0-9]+)/)?.[1];
+    const title = `Call PJM Advisory about the fee agreement${ref ? ` (${ref})` : ""}`;
+    return { text: "I'll set that up.", tool: { name: "create_task", input: { title, due_date: due, priority: "high" } } };
   }
   if (q.includes("draft")) return { tool: { name: "draft_email", input: { to: "Patrick Muwowo <patrick@pjm.example>", subject: "Fee agreement for Morogoro", body: "Dear Patrick,\n\nFollowing our call, could we agree the fee for the Morogoro project this week?\n\nBest regards,\nMaimouna" } } };
   const find = q.match(/(?:find|search(?: for)?|look up)\s+(.+?)[?.]?$/);

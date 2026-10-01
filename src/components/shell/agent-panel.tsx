@@ -1,42 +1,89 @@
 "use client";
 
-import { SparklesIcon } from "lucide-react";
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
+import { useEffect, useRef } from "react";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Maximize2Icon, PlusIcon, SparklesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import { ChatMessages, Composer, EmptyState } from "@/components/agent/chat";
+import { contextFrom, useAgent } from "@/components/agent/use-agent";
 
-const EXAMPLES = [
-  "What changed in the pipeline this week?",
-  "Draft a follow-up to the Ministry on the fertilizer proposal",
-  "Which investors fit the Dodoma mini-grid portfolio?",
-  "When is the last day to give notice on the Faminas mandate?",
-];
+/**
+ * Ask Lantana as a slide-over, available on every page (Ctrl+J). It knows the
+ * page and record you have open, keeps the conversation while closed, and can
+ * hand off to the full page at /agent.
+ */
+export function AgentPanel({
+  open,
+  onOpenChange,
+  enabled,
+  question,
+  onQuestionTaken,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  enabled: boolean;
+  question: string | null;
+  onQuestionTaken: () => void;
+}) {
+  const pathname = usePathname();
+  const search = useSearchParams();
+  const agent = useAgent();
+  const { send } = agent;
+  const scroller = useRef<HTMLDivElement>(null);
+  const ctx = () => contextFrom(pathname, new URLSearchParams(search.toString()));
 
-/** Placeholder until Phase 4 wires the Claude tool-use loop. */
-export function AgentPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  // A question typed into Ctrl+K arrives here once.
+  useEffect(() => {
+    if (open && question && enabled) {
+      onQuestionTaken();
+      void send(question, contextFrom(pathname, new URLSearchParams(search.toString())));
+    }
+  }, [open, question, enabled, onQuestionTaken, send, pathname, search]);
+
+  useEffect(() => {
+    scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
+  }, [agent.items]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-md">
-        <div className="border-b p-5 pr-12">
-          <SheetTitle className="flex items-center gap-2">
+      <SheetContent className="sm:max-w-lg" aria-describedby={undefined}>
+        <div className="flex items-center gap-2 border-b py-3 pr-12 pl-5">
+          <SheetTitle className="flex flex-1 items-center gap-2">
             <SparklesIcon className="size-4 text-gold" /> Ask Lantana
           </SheetTitle>
-          <SheetDescription className="mt-1">
-            The agent arrives in Phase 4. It will act with your permissions, show a confirmation card before any change, and cite the records behind every number.
-          </SheetDescription>
+          <SheetDescription className="sr-only">Chat with the Lantana assistant</SheetDescription>
+          {agent.items.length > 0 && (
+            <Button variant="ghost" size="icon-sm" aria-label="New conversation" onClick={() => agent.load(null)} disabled={agent.streaming}>
+              <PlusIcon />
+            </Button>
+          )}
+          <Button variant="ghost" size="icon-sm" asChild>
+            <Link href={agent.threadId ? `/agent?thread=${agent.threadId}` : "/agent"} aria-label="Open full page" onClick={() => onOpenChange(false)}>
+              <Maximize2Icon />
+            </Link>
+          </Button>
         </div>
-        <div className="flex-1 space-y-2 overflow-y-auto p-5">
-          <p className="text-xs text-muted-foreground">The kind of thing you&apos;ll be able to ask:</p>
-          {EXAMPLES.map((e) => (
-            <div key={e} className="rounded-md border bg-surface-2/50 px-3 py-2 text-sm text-muted-foreground">
-              {e}
-            </div>
-          ))}
+        <div ref={scroller} className="flex-1 overflow-y-auto p-5">
+          {agent.items.length === 0 ? (
+            <EmptyState onPick={(q) => send(q, ctx())} disabledReason={enabled ? null : "Ask Lantana needs an Anthropic API key on the server (ANTHROPIC_API_KEY). A principal can add it in the hosting settings."} />
+          ) : (
+            <ChatMessages items={agent.items} streaming={agent.streaming} onActionChange={agent.updateAction} />
+          )}
+          {agent.error && (
+            <p role="alert" className="mt-4 rounded-md border border-danger/40 bg-danger/10 p-2.5 text-sm text-danger">
+              {agent.error}
+            </p>
+          )}
         </div>
-        <form className="flex gap-2 border-t p-4" onSubmit={(e) => e.preventDefault()}>
-          <Input disabled placeholder="Available in Phase 4" aria-label="Message Ask Lantana" />
-          <Button disabled>Send</Button>
-        </form>
+        <div className="border-t p-4">
+          {enabled ? (
+            <Composer onSend={(t) => send(t, ctx())} onStop={agent.stop} streaming={agent.streaming} autoFocus={open} />
+          ) : (
+            <p className="text-xs text-muted-foreground">Unavailable until an API key is configured.</p>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );

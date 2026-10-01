@@ -18,9 +18,19 @@ export function ActivityFeed({ initial, names }: { initial: ActivityRow[]; names
     const supabase = createClient();
     const channel = supabase
       .channel("activity-feed")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "activity_events" }, (p) => {
-        const r = p.new as ActivityRow & { actor_id: string | null };
-        setRows((prev) => [{ ...r, actor: r.actor_id ? (names[r.actor_id] ?? "Someone") : null }, ...prev].slice(0, 40));
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "activity_events" }, async (p) => {
+        // Re-read the row rather than trusting the payload: same query and
+        // RLS as the server render, and a well-formed timestamp.
+        const id = (p.new as { id?: number }).id;
+        if (id == null) return;
+        const { data } = await supabase
+          .from("activity_events")
+          .select("id, occurred_at, verb, summary, entity_type, entity_id, actor:profiles(full_name)")
+          .eq("id", id)
+          .maybeSingle();
+        if (!data) return;
+        const row: ActivityRow = { ...data, actor: (data.actor as { full_name: string } | null)?.full_name ?? null };
+        setRows((prev) => (prev.some((r) => r.id === row.id) ? prev : [row, ...prev].slice(0, 40)));
       })
       .subscribe();
     const t = window.setInterval(() => tick((n) => n + 1), 60_000);

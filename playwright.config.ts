@@ -27,10 +27,15 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 1000 } }, dependencies: ["setup"], testIgnore: /(auth\.setup|responsive\.spec)\.ts/ },
     { name: "mobile", use: { ...devices["Pixel 7"], viewport: { width: 375, height: 812 } }, dependencies: ["setup"], testMatch: /responsive\.spec\.ts/ },
   ],
-  webServer: {
-    command: "pnpm dev",
-    url: "http://localhost:3000/login",
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  webServer: [
+    // Scripted stand-in for the Anthropic API, so Ask Lantana runs without a key.
+    { command: "node scripts/mock-anthropic.mjs", url: "http://127.0.0.1:4010/__requests", reuseExistingServer: true, timeout: 30_000 },
+    {
+      command: "pnpm dev",
+      url: "http://localhost:3000/login",
+      reuseExistingServer: true,
+      timeout: 120_000,
+      env: { ANTHROPIC_API_KEY: "test-key", ANTHROPIC_BASE_URL: "http://127.0.0.1:4010" },
+    },
+  ],
 });

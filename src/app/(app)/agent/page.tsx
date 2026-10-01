@@ -1,8 +1,17 @@
 import type { Metadata } from "next";
-import { ModulePage } from "@/components/module-page";
+import { Suspense } from "react";
+import { createClient } from "@/lib/supabase/server";
+import { agentAvailable } from "@/server/agent/config";
+import { listThreads } from "@/server/agent/threads";
+import { AgentWorkspace } from "@/components/agent/agent-workspace";
 
 export const metadata: Metadata = { title: "Ask Lantana" };
 
-export default function Page() {
-  return <ModulePage href="/agent" />;
+export default async function AgentPage() {
+  const threads = await listThreads(await createClient());
+  return (
+    <Suspense>
+      <AgentWorkspace threads={threads} enabled={agentAvailable()} />
+    </Suspense>
+  );
 }

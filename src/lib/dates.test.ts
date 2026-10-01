@@ -27,3 +27,15 @@ describe("dates (Asia/Dubai)", () => {
     expect(resolveRange({ from: "'; drop", to: "x" }, "2026-09-30").key).toBe("90d");
   });
 });
+
+describe("parseTs", () => {
+  it("reads ISO and Postgres text timestamps, and rejects junk", async () => {
+    const { parseTs, fmtDubai, relativeTime } = await import("./dates");
+    expect(parseTs("2026-10-01T12:30:00.123456+00:00")?.toISOString()).toBe("2026-10-01T12:30:00.123Z");
+    expect(parseTs("2026-10-01 12:30:00.123456+00")?.toISOString()).toBe("2026-10-01T12:30:00.123Z");
+    expect(parseTs(undefined)).toBeNull();
+    expect(parseTs("not a date")).toBeNull();
+    expect(fmtDubai("not a date")).toBe("—");
+    expect(relativeTime(undefined as unknown as string)).toBe("just now");
+  });
+});

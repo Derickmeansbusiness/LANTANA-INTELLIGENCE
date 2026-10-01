@@ -109,7 +109,7 @@ export function CommandPalette({
                 <CommandItem value="ask" onSelect={() => go(() => onAsk(q))}>
                   <SparklesIcon className="!text-gold" />
                   <span className="truncate">Ask: &ldquo;{q}&rdquo;</span>
-                  <CommandShortcut>Phase 4</CommandShortcut>
+                  <CommandShortcut>Enter</CommandShortcut>
                 </CommandItem>
               </CommandGroup>
             )}

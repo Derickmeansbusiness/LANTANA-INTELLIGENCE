@@ -43,7 +43,7 @@ const collapseStore = {
   },
 };
 
-export function AppShell({ user, children }: { user: ShellUser; children: React.ReactNode }) {
+export function AppShell({ user, agentEnabled, children }: { user: ShellUser; agentEnabled: boolean; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const collapsed = useSyncExternalStore(collapseStore.subscribe, collapseStore.get, () => false);
@@ -53,6 +53,8 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
   const setMobileOpen = (o: boolean) => setDrawerPath(o ? pathname : null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [agentOpen, setAgentOpen] = useState(false);
+  const [question, setQuestion] = useState<string | null>(null);
+  const takeQuestion = useCallback(() => setQuestion(null), []);
   const pendingG = useRef<number | null>(null);
 
   const toggleCollapsed = useCallback(() => collapseStore.set(!collapseStore.get()), []);
@@ -136,9 +138,11 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
       </div>
 
       <Suspense fallback={null}>
-        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} role={user.role} onAsk={() => setAgentOpen(true)} />
+        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} role={user.role} onAsk={(q) => (setQuestion(q), setAgentOpen(true))} />
       </Suspense>
-      <AgentPanel open={agentOpen} onOpenChange={setAgentOpen} />
+      <Suspense>
+        <AgentPanel open={agentOpen} onOpenChange={setAgentOpen} enabled={agentEnabled} question={question} onQuestionTaken={takeQuestion} />
+      </Suspense>
       <Suspense fallback={null}>
         <RecordSheet />
         <TaskSheet />
