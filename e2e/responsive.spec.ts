@@ -51,6 +51,7 @@ test("every page fits 375px", async ({ page }) => {
     "/documents/templates/mandate",
     "/contracts/e0000000-0000-4000-8000-000000000002",
     "/s/unavailable?r=expired",
+    "/agent",
   ]) {
     await page.goto(path);
     expect(await noHorizontalScroll(page), path).toBe(true);
@@ -92,6 +93,27 @@ test("phase 3 pages at 375px in both themes", async ({ page }) => {
       await page.screenshot({ path: `${SHOTS}/mobile-${name}-${theme}.png`, fullPage: true });
     }
   }
+  await setTheme(page, "dark");
+});
+
+test("Ask Lantana at 375px in both themes", async ({ page }) => {
+  await page.goto("/agent");
+  for (const theme of ["dark", "light"] as const) {
+    await setTheme(page, theme);
+    await page.getByLabel("Message Ask Lantana").fill("Find Morogoro");
+    await page.getByLabel("Message Ask Lantana").press("Enter");
+    await expect(page.getByRole("link", { name: "Morogoro agro-processing hub" }).first()).toBeVisible();
+    expect(await noHorizontalScroll(page), `/agent ${theme}`).toBe(true);
+    await page.screenshot({ path: `${SHOTS}/mobile-agent-${theme}.png`, fullPage: true });
+  }
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ask Lantana (Ctrl+J)" }).click();
+  const panel = page.getByRole("dialog", { name: "Ask Lantana" });
+  await panel.getByLabel("Message Ask Lantana").fill("Remind me to call PJM about the fee");
+  await panel.getByLabel("Message Ask Lantana").press("Enter");
+  await expect(panel.getByTestId("proposal-card")).toBeVisible();
+  expect(await noHorizontalScroll(page)).toBe(true);
+  await page.screenshot({ path: `${SHOTS}/mobile-agent-panel-light.png` });
   await setTheme(page, "dark");
 });
 

@@ -35,9 +35,9 @@ export function AiBriefing({ initial, enabled, fallback, icon }: { initial: Brie
     <>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="flex items-center gap-2 text-sm font-medium">
+          <h2 id="briefing-title" className="flex items-center gap-2 text-sm font-medium">
             {icon} Morning briefing
-          </p>
+          </h2>
           <p className="mt-0.5 text-xs text-muted-foreground" aria-live="polite">
             {briefing
               ? `Written by Ask Lantana at ${fmtDubai(briefing.created_at, "HH:mm")} from your live data.`

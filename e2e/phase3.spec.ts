@@ -173,7 +173,10 @@ test.describe.serial("manager · contracts register", () => {
     await page.getByRole("link", { name: "Mandate & Non-Circumvention — Faminas Investment Group" }).click();
     await expect(page.getByText("Forum names DIFC-LCIA, abolished in 2021")).toBeVisible();
     await expect(page.getByText("Last day to give 30-day notice")).toBeVisible();
-    await expect(page.getByRole("button", { name: "AI clause review" })).toBeDisabled();
+    // On fresh seed data the mandate has no file, so the review says what it needs;
+    // after the Phase 4 spec links a generated mandate, it runs.
+    await page.getByRole("button", { name: "AI clause review" }).click();
+    await expect(page.getByText(/That document has no file uploaded yet\.|Review saved: \d+ findings?/)).toBeVisible({ timeout: 30_000 });
   });
 
   test("create a contract, add an obligation that becomes a task, add a survival clause", async ({ page }) => {

@@ -215,7 +215,7 @@ export function Composer({ onSend, onStop, streaming, autoFocus, initial }: { on
             submit();
           }
         }}
-        placeholder="Ask about deals, tasks, contracts, documents…"
+        placeholder="Ask a question…"
         aria-label="Message Ask Lantana"
         className="max-h-40 min-h-10 resize-none"
         maxLength={8000}

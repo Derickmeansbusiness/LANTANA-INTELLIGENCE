@@ -130,10 +130,10 @@ export function AgentWorkspace({ threads: initial, enabled }: { threads: ThreadS
 
       <section className="flex min-w-0 flex-1 flex-col rounded-lg border bg-surface">
         <div className="flex items-center gap-2 border-b px-4 py-3">
-          <h1 className="flex flex-1 items-center gap-2 font-display text-lg">
+          <h1 className="flex flex-1 items-center gap-2 font-display text-lg whitespace-nowrap">
             <SparklesIcon className="size-4 text-gold" /> Ask Lantana
           </h1>
-          <div className="w-44 lg:hidden">
+          <div className="w-36 min-w-0 lg:hidden">
             <NativeSelect aria-label="Conversation" value={threadId ?? ""} onChange={(e) => open(e.target.value || null)}>
               <option value="">New conversation</option>
               {threads.map((t) => (

@@ -29,9 +29,6 @@ export function BriefingCard({
   const { lines } = briefingFacts({ attention, activity, kpis, week, today });
   return (
     <section className="animate-fade-up rounded-lg border bg-surface p-4 sm:p-5" aria-labelledby="briefing-title">
-      <h2 id="briefing-title" className="sr-only">
-        Morning briefing
-      </h2>
       <AiBriefing initial={ai} enabled={enabled} fallback={lines.slice(0, 6)} icon={<SparklesIcon className="size-4 text-gold" />} />
     </section>
   );
