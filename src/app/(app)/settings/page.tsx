@@ -7,12 +7,12 @@ import { fmtDubai } from "@/lib/dates";
 import { getSession } from "@/server/session";
 import { WipeDemo } from "./wipe-demo";
 import { RunAlerts, RunScan } from "./run-alerts";
+import { Invites, PeopleAccess } from "./access";
+import { listInvites } from "@/server/data-rooms";
 
 export const metadata: Metadata = { title: "Settings" };
 
 const USAGE_KIND: Record<string, string> = { chat: "Chat", briefing: "Morning briefing", clause_review: "Clause review", ocr: "OCR" };
-
-const ROLE_TONE = { principal: "gold", manager: "info", staff: "default", external: "outline" } as const;
 
 export default async function SettingsPage() {
   const session = await getSession();
@@ -25,7 +25,10 @@ export default async function SettingsPage() {
       : Promise.resolve({ data: null }),
     session.isManagerPlus ? supabase.rpc("demo_data_counts") : Promise.resolve({ data: null }),
   ]);
-  const { data: usage } = await supabase.from("agent_usage_month").select("*");
+  const [{ data: usage }, invites] = await Promise.all([
+    supabase.from("agent_usage_month").select("*"),
+    session.isManagerPlus ? listInvites(supabase) : Promise.resolve([]),
+  ]);
   const names = Object.fromEntries((people ?? []).map((p) => [p.id, p.full_name]));
   const counts = (demo.data ?? {}) as Record<string, number>;
   const demoTotal = Object.values(counts).reduce((a, b) => a + Number(b), 0);
@@ -83,24 +86,35 @@ export default async function SettingsPage() {
           <CardHeader>
             <div>
               <CardTitle>People and access</CardTitle>
-              <CardDescription>Invitations and role changes arrive with People &amp; HR in Phase 5.</CardDescription>
+              <CardDescription>
+                {session.isPrincipal
+                  ? "Change a role here; it applies on their next page load. Employment records live in People & HR."
+                  : "Only a principal can change roles."}
+              </CardDescription>
             </div>
           </CardHeader>
           <CardContent>
-            <ul className="divide-y">
-              {(people ?? []).map((p) => (
-                <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 text-sm">
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate">{p.full_name}</span>
-                    <span className="block truncate text-xs text-muted-foreground">{p.title ?? p.email}</span>
-                  </span>
-                  <Badge variant={ROLE_TONE[p.role]}>{p.role}</Badge>
-                  {!p.is_active && <Badge variant="danger">Deactivated</Badge>}
-                </li>
-              ))}
-            </ul>
+            <PeopleAccess people={(people ?? []) as Parameters<typeof PeopleAccess>[0]["people"]} me={session.userId} canChangeRoles={session.isPrincipal} />
           </CardContent>
         </Card>
+
+        {session.isManagerPlus && (
+          <Card>
+            <CardHeader>
+              <div>
+                <CardTitle>Invitations</CardTitle>
+                <CardDescription>
+                  Lantana Command is invite-only: the database refuses any sign-up without an open invite.{" "}
+                  {session.isPrincipal ? "Principals can invite anyone." : "Managers can invite external guests; colleagues need a principal."} Guests added to a data room are
+                  invited automatically.
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Invites invites={invites} isPrincipal={session.isPrincipal} />
+            </CardContent>
+          </Card>
+        )}
 
         {session.isManagerPlus && (
           <Card>

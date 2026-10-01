@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/server/session";
 import { chainStatus, listIntroductions } from "@/server/ledger";
 import { LedgerPdf } from "@/server/pdf/ledger-pdf";
 
@@ -8,6 +9,8 @@ export const runtime = "nodejs";
 
 /** Dated PDF of the introductions ledger (optionally one deal). RLS decides which rows appear. */
 export async function GET(request: NextRequest) {
+  // Route handlers skip the (app) layout, so the guest check is repeated here.
+  if ((await getSession()).role === "external") return NextResponse.json({ error: "Not found" }, { status: 404 });
   const db = await createClient();
   const { data: claims } = await db.auth.getClaims();
   if (!claims?.claims?.sub) return NextResponse.json({ error: "Sign in first" }, { status: 401 });

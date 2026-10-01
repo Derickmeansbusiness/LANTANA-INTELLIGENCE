@@ -20,13 +20,15 @@ const bodySchema = z.object({
 
 /** Ask Lantana: one user message in, a stream of AgentEvents out (SSE). */
 export async function POST(request: Request) {
+  const session = await getSession();
+  // Data-room guests never reach the agent, even though RLS would show it nothing.
+  if (session.role === "external") return Response.json({ error: "Not found" }, { status: 404 });
   if (!agentAvailable()) {
     return Response.json({ error: "Ask Lantana needs an Anthropic API key. Add ANTHROPIC_API_KEY to the server environment." }, { status: 503 });
   }
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "Bad request" }, { status: 400 });
 
-  const session = await getSession();
   const db = await createClient();
   const { data: auth } = await db.auth.getSession();
   const accessToken = auth.session?.access_token ?? null;

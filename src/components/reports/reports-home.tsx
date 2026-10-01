@@ -245,9 +245,9 @@ function PackCard({ k, isPrincipal }: { k: PackKey; isPrincipal: boolean }) {
             </Link>
           </Button>
           <Button asChild size="sm" variant="outline">
-            <Link href={`/reports/pdf?pack=${k}`} prefetch={false}>
-              PDF
-            </Link>
+            <a href={`/reports/pdf?pack=${k}`} download>
+              PDF<span className="sr-only"> of the {p.name.toLowerCase()}</span>
+            </a>
           </Button>
         </div>
       </CardContent>

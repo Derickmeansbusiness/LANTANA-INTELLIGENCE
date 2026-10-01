@@ -25,3 +25,6 @@ export async function noHorizontalScroll(page: Page) {
   const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
   return scrollWidth <= width + 1;
 }
+
+/** The seeded data-room guest (role external). Kept out of ROLES: guests only ever see the portal. */
+export const GUEST = { email: "guest@lantana.test", auth: "e2e/.auth/guest.json" };

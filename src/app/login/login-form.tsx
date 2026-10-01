@@ -62,7 +62,7 @@ export function LoginForm({ next, devLogin }: { next: string; devLogin: boolean 
       </button>
       {devLogin && (
         <p className="rounded-md border border-dashed p-2.5 text-xs text-muted-foreground">
-          Local test accounts: maimouna@, fai@, manager@, staff@lantana.test · password <span className="num text-foreground">lantana-dev-2026</span>
+          Local test accounts: maimouna@, fai@, manager@, staff@, guest@lantana.test · password <span className="num text-foreground">lantana-dev-2026</span>
         </p>
       )}
     </form>

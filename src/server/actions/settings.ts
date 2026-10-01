@@ -32,3 +32,13 @@ export async function runNightlyScanAction(): Promise<{ ok: true; sent: number }
   revalidatePath("/", "layout");
   return { ok: true, sent: data ?? 0 };
 }
+
+/** Principal-only (set_user_role checks the role and refuses self-demotion). */
+export async function setUserRoleAction(userId: string, role: "principal" | "manager" | "staff" | "external"): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!["principal", "manager", "staff", "external"].includes(role)) return { ok: false, error: "Unknown role." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_user_role", { p_user: userId, p_role: role });
+  if (error) return { ok: false, error: error.code === "42501" ? "Only a principal (with two-step sign-in) can change roles." : error.message };
+  revalidatePath("/settings");
+  return { ok: true };
+}

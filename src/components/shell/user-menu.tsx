@@ -25,6 +25,7 @@ const DEV_ACCOUNTS = [
   { email: "fai@lantana.test", label: "Fai (Principal)" },
   { email: "manager@lantana.test", label: "Test Manager" },
   { email: "staff@lantana.test", label: "Test Staff" },
+  { email: "guest@lantana.test", label: "Test Guest (data room)" },
 ];
 
 export function UserMenu({ user, collapsed }: { user: ShellUser; collapsed: boolean }) {

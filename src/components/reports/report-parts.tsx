@@ -1,7 +1,6 @@
 "use client";
 
 import { useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArchiveIcon, DownloadIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -100,10 +99,11 @@ export function PeriodPicker({ value, periods, query }: { value: string; periods
 export function PdfLink({ query }: { query: Query }) {
   const p = new URLSearchParams(Object.entries(query).filter(([, v]) => v) as [string, string][]);
   return (
+    // A plain download link: client-side navigation to a route handler would move the page's URL.
     <Button asChild>
-      <Link href={`/reports/pdf?${p}`} prefetch={false}>
+      <a href={`/reports/pdf?${p}`} download>
         <DownloadIcon /> Download PDF
-      </Link>
+      </a>
     </Button>
   );
 }
