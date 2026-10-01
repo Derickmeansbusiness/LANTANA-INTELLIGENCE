@@ -200,6 +200,49 @@ isOneToOne: false
       referencedColumns: ["code"]
     }
                   ]
+                },"bills": {
+                  Row: {
+                    "account_id": string | null,"created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"description": string,"document_id": string | null,"due_date": string,"id": string,"is_demo": boolean,"issue_date": string,"notes": string | null,"paid_at": string | null,"reference": string | null,"status": string,"supplier_name": string | null,"supplier_org_id": string | null,"total_minor": number,"updated_at": string
+                  }
+                  Insert: {
+                    "account_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency": string,"deleted_at"?: string | null,"description": string,"document_id"?: string | null,"due_date": string,"id"?: string,"is_demo"?: boolean,"issue_date": string,"notes"?: string | null,"paid_at"?: string | null,"reference"?: string | null,"status"?: string,"supplier_name"?: string | null,"supplier_org_id"?: string | null,"total_minor": number,"updated_at"?: string
+                  }
+                  Update: {
+                    "account_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"description"?: string,"document_id"?: string | null,"due_date"?: string,"id"?: string,"is_demo"?: boolean,"issue_date"?: string,"notes"?: string | null,"paid_at"?: string | null,"reference"?: string | null,"status"?: string,"supplier_name"?: string | null,"supplier_org_id"?: string | null,"total_minor"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "bills_account_id_fkey"
+      columns: ["account_id"]
+isOneToOne: false
+      referencedRelation: "accounts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "bills_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "bills_currency_fkey"
+      columns: ["currency"]
+isOneToOne: false
+      referencedRelation: "currencies"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "bills_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "bills_supplier_org_id_fkey"
+      columns: ["supplier_org_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"briefings": {
                   Row: {
                     "briefing_date": string,"content": string,"created_at": string,"facts": NonNullable<Json>,"id": string,"model": string | null,"user_id": string
@@ -216,6 +259,124 @@ isOneToOne: false
       columns: ["user_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"budgets": {
+                  Row: {
+                    "account_id": string,"amount_minor": number,"created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"id": string,"is_demo": boolean,"month": string,"notes": string | null,"updated_at": string
+                  }
+                  Insert: {
+                    "account_id": string,"amount_minor": number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"month": string,"notes"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "account_id"?: string,"amount_minor"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"month"?: string,"notes"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "budgets_account_id_fkey"
+      columns: ["account_id"]
+isOneToOne: false
+      referencedRelation: "accounts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "budgets_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "budgets_currency_fkey"
+      columns: ["currency"]
+isOneToOne: false
+      referencedRelation: "currencies"
+      referencedColumns: ["code"]
+    }
+                  ]
+                },"category_rules": {
+                  Row: {
+                    "account_id": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"id": string,"is_demo": boolean,"pattern": string,"updated_at": string
+                  }
+                  Insert: {
+                    "account_id": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"pattern": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "account_id"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"pattern"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "category_rules_account_id_fkey"
+      columns: ["account_id"]
+isOneToOne: false
+      referencedRelation: "accounts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "category_rules_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"checklist_items": {
+                  Row: {
+                    "checklist_id": string,"created_at": string,"created_by": string | null,"done_at": string | null,"done_by": string | null,"due_date": string | null,"id": string,"is_demo": boolean,"owner_id": string | null,"position": number,"title": string,"updated_at": string
+                  }
+                  Insert: {
+                    "checklist_id": string,"created_at"?: string,"created_by"?: string | null,"done_at"?: string | null,"done_by"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"owner_id"?: string | null,"position"?: number,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "checklist_id"?: string,"created_at"?: string,"created_by"?: string | null,"done_at"?: string | null,"done_by"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"owner_id"?: string | null,"position"?: number,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "checklist_items_checklist_id_fkey"
+      columns: ["checklist_id"]
+isOneToOne: false
+      referencedRelation: "checklists"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "checklist_items_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "checklist_items_done_by_fkey"
+      columns: ["done_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "checklist_items_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"checklists": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"employee_id": string,"id": string,"is_demo": boolean,"kind": string,"title": string,"updated_at": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"employee_id": string,"id"?: string,"is_demo"?: boolean,"kind": string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"employee_id"?: string,"id"?: string,"is_demo"?: boolean,"kind"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "checklists_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "checklists_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: false
+      referencedRelation: "employees"
       referencedColumns: ["id"]
     }
                   ]
@@ -258,33 +419,51 @@ isOneToOne: false
                   ]
                 },"company": {
                   Row: {
-                    "address_lines": (string)[],"base_currency": string,"created_at": string,"id": boolean,"legal_name": string,"licence_no": string | null,"licensing_authority": string | null,"require_principal_mfa": boolean,"timezone": string,"updated_at": string,"website": string | null
+                    "address_lines": (string)[],"base_currency": string,"created_at": string,"email": string | null,"id": boolean,"legal_name": string,"licence_no": string | null,"licensing_authority": string | null,"mohre_establishment_id": string | null,"phone": string | null,"require_principal_mfa": boolean,"timezone": string,"updated_at": string,"website": string | null,"wps_employer_bank_code": string | null
                   }
                   Insert: {
-                    "address_lines"?: (string)[],"base_currency"?: string,"created_at"?: string,"id"?: boolean,"legal_name": string,"licence_no"?: string | null,"licensing_authority"?: string | null,"require_principal_mfa"?: boolean,"timezone"?: string,"updated_at"?: string,"website"?: string | null
+                    "address_lines"?: (string)[],"base_currency"?: string,"created_at"?: string,"email"?: string | null,"id"?: boolean,"legal_name": string,"licence_no"?: string | null,"licensing_authority"?: string | null,"mohre_establishment_id"?: string | null,"phone"?: string | null,"require_principal_mfa"?: boolean,"timezone"?: string,"updated_at"?: string,"website"?: string | null,"wps_employer_bank_code"?: string | null
                   }
                   Update: {
-                    "address_lines"?: (string)[],"base_currency"?: string,"created_at"?: string,"id"?: boolean,"legal_name"?: string,"licence_no"?: string | null,"licensing_authority"?: string | null,"require_principal_mfa"?: boolean,"timezone"?: string,"updated_at"?: string,"website"?: string | null
+                    "address_lines"?: (string)[],"base_currency"?: string,"created_at"?: string,"email"?: string | null,"id"?: boolean,"legal_name"?: string,"licence_no"?: string | null,"licensing_authority"?: string | null,"mohre_establishment_id"?: string | null,"phone"?: string | null,"require_principal_mfa"?: boolean,"timezone"?: string,"updated_at"?: string,"website"?: string | null,"wps_employer_bank_code"?: string | null
                   }
                   Relationships: [
                     
                   ]
                 },"compliance_items": {
                   Row: {
-                    "authority": string | null,"category": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"due_date": string | null,"id": string,"is_demo": boolean,"notes": string | null,"owner_id": string | null,"recurrence": string | null,"status": string,"title": string,"updated_at": string
+                    "authority": string | null,"category": string,"completed_on": string | null,"confirmed_at": string | null,"confirmed_by": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"document_id": string | null,"due_date": string | null,"id": string,"is_demo": boolean,"next_item_id": string | null,"notes": string | null,"owner_id": string | null,"recurrence": string | null,"status": string,"title": string,"updated_at": string
                   }
                   Insert: {
-                    "authority"?: string | null,"category": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"notes"?: string | null,"owner_id"?: string | null,"recurrence"?: string | null,"status"?: string,"title": string,"updated_at"?: string
+                    "authority"?: string | null,"category": string,"completed_on"?: string | null,"confirmed_at"?: string | null,"confirmed_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"document_id"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"next_item_id"?: string | null,"notes"?: string | null,"owner_id"?: string | null,"recurrence"?: string | null,"status"?: string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "authority"?: string | null,"category"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"notes"?: string | null,"owner_id"?: string | null,"recurrence"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string
+                    "authority"?: string | null,"category"?: string,"completed_on"?: string | null,"confirmed_at"?: string | null,"confirmed_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"document_id"?: string | null,"due_date"?: string | null,"id"?: string,"is_demo"?: boolean,"next_item_id"?: string | null,"notes"?: string | null,"owner_id"?: string | null,"recurrence"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "compliance_items_confirmed_by_fkey"
+      columns: ["confirmed_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "compliance_items_created_by_fkey"
       columns: ["created_by"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "compliance_items_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "compliance_items_next_item_id_fkey"
+      columns: ["next_item_id"]
+isOneToOne: false
+      referencedRelation: "compliance_items"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "compliance_items_owner_id_fkey"
@@ -427,6 +606,31 @@ isOneToOne: false
       columns: ["owner_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"corporate_records": {
+                  Row: {
+                    "authority": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"detail": string | null,"document_id": string | null,"expiry_date": string | null,"holder": string | null,"id": string,"is_demo": boolean,"issue_date": string | null,"kind": string,"notes": string | null,"reference_no": string | null,"title": string,"updated_at": string
+                  }
+                  Insert: {
+                    "authority"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"detail"?: string | null,"document_id"?: string | null,"expiry_date"?: string | null,"holder"?: string | null,"id"?: string,"is_demo"?: boolean,"issue_date"?: string | null,"kind": string,"notes"?: string | null,"reference_no"?: string | null,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "authority"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"detail"?: string | null,"document_id"?: string | null,"expiry_date"?: string | null,"holder"?: string | null,"id"?: string,"is_demo"?: boolean,"issue_date"?: string | null,"kind"?: string,"notes"?: string | null,"reference_no"?: string | null,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "corporate_records_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "corporate_records_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
       referencedColumns: ["id"]
     }
                   ]
@@ -827,6 +1031,93 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"employee_compensation": {
+                  Row: {
+                    "basic_enc": string,"created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"effective_from": string,"employee_id": string,"housing_enc": string | null,"id": string,"is_demo": boolean,"note": string | null,"other_enc": string | null,"transport_enc": string | null,"updated_at": string
+                  }
+                  Insert: {
+                    "basic_enc": string,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"effective_from": string,"employee_id": string,"housing_enc"?: string | null,"id"?: string,"is_demo"?: boolean,"note"?: string | null,"other_enc"?: string | null,"transport_enc"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "basic_enc"?: string,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"effective_from"?: string,"employee_id"?: string,"housing_enc"?: string | null,"id"?: string,"is_demo"?: boolean,"note"?: string | null,"other_enc"?: string | null,"transport_enc"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "employee_compensation_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employee_compensation_currency_fkey"
+      columns: ["currency"]
+isOneToOne: false
+      referencedRelation: "currencies"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "employee_compensation_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"employee_identity": {
+                  Row: {
+                    "bank_name": string | null,"bank_routing_code": string | null,"created_at": string,"created_by": string | null,"date_of_birth": string | null,"emirates_id_last4": string | null,"emirates_id_no_enc": string | null,"employee_id": string,"iban_enc": string | null,"iban_last4": string | null,"is_demo": boolean,"labour_card_no_enc": string | null,"mohre_person_code_enc": string | null,"nationality": string | null,"passport_last4": string | null,"passport_no_enc": string | null,"updated_at": string,"visa_file_no_enc": string | null
+                  }
+                  Insert: {
+                    "bank_name"?: string | null,"bank_routing_code"?: string | null,"created_at"?: string,"created_by"?: string | null,"date_of_birth"?: string | null,"emirates_id_last4"?: string | null,"emirates_id_no_enc"?: string | null,"employee_id": string,"iban_enc"?: string | null,"iban_last4"?: string | null,"is_demo"?: boolean,"labour_card_no_enc"?: string | null,"mohre_person_code_enc"?: string | null,"nationality"?: string | null,"passport_last4"?: string | null,"passport_no_enc"?: string | null,"updated_at"?: string,"visa_file_no_enc"?: string | null
+                  }
+                  Update: {
+                    "bank_name"?: string | null,"bank_routing_code"?: string | null,"created_at"?: string,"created_by"?: string | null,"date_of_birth"?: string | null,"emirates_id_last4"?: string | null,"emirates_id_no_enc"?: string | null,"employee_id"?: string,"iban_enc"?: string | null,"iban_last4"?: string | null,"is_demo"?: boolean,"labour_card_no_enc"?: string | null,"mohre_person_code_enc"?: string | null,"nationality"?: string | null,"passport_last4"?: string | null,"passport_no_enc"?: string | null,"updated_at"?: string,"visa_file_no_enc"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "employee_identity_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employee_identity_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: true
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"employees": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"department": string | null,"emirates_id_expiry": string | null,"employment_type": string,"end_date": string | null,"full_name": string,"id": string,"insurance_expiry": string | null,"is_demo": boolean,"job_title": string | null,"labour_card_expiry": string | null,"manager_id": string | null,"on_payroll": boolean,"passport_expiry": string | null,"phone": string | null,"probation_end": string | null,"profile_id": string | null,"start_date": string | null,"status": string,"updated_at": string,"visa_expiry": string | null,"work_email": string | null,"work_location": string | null
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"department"?: string | null,"emirates_id_expiry"?: string | null,"employment_type"?: string,"end_date"?: string | null,"full_name": string,"id"?: string,"insurance_expiry"?: string | null,"is_demo"?: boolean,"job_title"?: string | null,"labour_card_expiry"?: string | null,"manager_id"?: string | null,"on_payroll"?: boolean,"passport_expiry"?: string | null,"phone"?: string | null,"probation_end"?: string | null,"profile_id"?: string | null,"start_date"?: string | null,"status"?: string,"updated_at"?: string,"visa_expiry"?: string | null,"work_email"?: string | null,"work_location"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"department"?: string | null,"emirates_id_expiry"?: string | null,"employment_type"?: string,"end_date"?: string | null,"full_name"?: string,"id"?: string,"insurance_expiry"?: string | null,"is_demo"?: boolean,"job_title"?: string | null,"labour_card_expiry"?: string | null,"manager_id"?: string | null,"on_payroll"?: boolean,"passport_expiry"?: string | null,"phone"?: string | null,"probation_end"?: string | null,"profile_id"?: string | null,"start_date"?: string | null,"status"?: string,"updated_at"?: string,"visa_expiry"?: string | null,"work_email"?: string | null,"work_location"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "employees_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employees_manager_id_fkey"
+      columns: ["manager_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "employees_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: true
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"folders": {
                   Row: {
                     "created_at": string,"created_by": string | null,"deleted_at": string | null,"id": string,"is_demo": boolean,"name": string,"parent_id": string | null,"updated_at": string
@@ -981,15 +1272,40 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"invoices": {
+                },"invoice_items": {
                   Row: {
-                    "created_at": string,"created_by": string | null,"currency": string,"deal_id": string | null,"deleted_at": string | null,"due_date": string,"id": string,"invoice_no": string,"is_demo": boolean,"issue_date": string,"kind": string,"organization_id": string | null,"paid_at": string | null,"status": string,"total_minor": number,"updated_at": string
+                    "amount_minor": number,"created_at": string,"created_by": string | null,"description": string,"id": string,"invoice_id": string,"is_demo": boolean,"position": number,"quantity": number,"unit_price_minor": number,"updated_at": string
                   }
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"currency": string,"deal_id"?: string | null,"deleted_at"?: string | null,"due_date": string,"id"?: string,"invoice_no": string,"is_demo"?: boolean,"issue_date": string,"kind"?: string,"organization_id"?: string | null,"paid_at"?: string | null,"status"?: string,"total_minor": number,"updated_at"?: string
+                    "amount_minor"?: number,"created_at"?: string,"created_by"?: string | null,"description": string,"id"?: string,"invoice_id": string,"is_demo"?: boolean,"position"?: number,"quantity"?: number,"unit_price_minor": number,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"deal_id"?: string | null,"deleted_at"?: string | null,"due_date"?: string,"id"?: string,"invoice_no"?: string,"is_demo"?: boolean,"issue_date"?: string,"kind"?: string,"organization_id"?: string | null,"paid_at"?: string | null,"status"?: string,"total_minor"?: number,"updated_at"?: string
+                    "amount_minor"?: number,"created_at"?: string,"created_by"?: string | null,"description"?: string,"id"?: string,"invoice_id"?: string,"is_demo"?: boolean,"position"?: number,"quantity"?: number,"unit_price_minor"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invoice_items_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invoice_items_invoice_id_fkey"
+      columns: ["invoice_id"]
+isOneToOne: false
+      referencedRelation: "invoices"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"invoices": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"currency": string,"deal_id": string | null,"deleted_at": string | null,"due_date": string,"id": string,"invoice_no": string,"is_demo": boolean,"issue_date": string,"kind": string,"notes": string | null,"organization_id": string | null,"paid_at": string | null,"reference": string | null,"status": string,"subtotal_minor": number | null,"total_minor": number,"updated_at": string,"vat_minor": number,"vat_rate": number
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"currency": string,"deal_id"?: string | null,"deleted_at"?: string | null,"due_date": string,"id"?: string,"invoice_no": string,"is_demo"?: boolean,"issue_date": string,"kind"?: string,"notes"?: string | null,"organization_id"?: string | null,"paid_at"?: string | null,"reference"?: string | null,"status"?: string,"subtotal_minor"?: number | null,"total_minor": number,"updated_at"?: string,"vat_minor"?: number,"vat_rate"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"deal_id"?: string | null,"deleted_at"?: string | null,"due_date"?: string,"id"?: string,"invoice_no"?: string,"is_demo"?: boolean,"issue_date"?: string,"kind"?: string,"notes"?: string | null,"organization_id"?: string | null,"paid_at"?: string | null,"reference"?: string | null,"status"?: string,"subtotal_minor"?: number | null,"total_minor"?: number,"updated_at"?: string,"vat_minor"?: number,"vat_rate"?: number
                   }
                   Relationships: [
                     {
@@ -1018,15 +1334,71 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"meetings": {
+                },"leave_balances": {
                   Row: {
-                    "attendee_ids": (string)[],"created_at": string,"created_by": string | null,"deal_id": string | null,"deleted_at": string | null,"ends_at": string | null,"id": string,"is_demo": boolean,"location": string | null,"notes": string | null,"organization_id": string | null,"starts_at": string,"title": string,"updated_at": string
+                    "carried_over": number,"created_at": string,"created_by": string | null,"employee_id": string,"entitled_days": number,"id": string,"is_demo": boolean,"kind": string,"notes": string | null,"updated_at": string,"year": number
                   }
                   Insert: {
-                    "attendee_ids"?: (string)[],"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"ends_at"?: string | null,"id"?: string,"is_demo"?: boolean,"location"?: string | null,"notes"?: string | null,"organization_id"?: string | null,"starts_at": string,"title": string,"updated_at"?: string
+                    "carried_over"?: number,"created_at"?: string,"created_by"?: string | null,"employee_id": string,"entitled_days": number,"id"?: string,"is_demo"?: boolean,"kind": string,"notes"?: string | null,"updated_at"?: string,"year": number
                   }
                   Update: {
-                    "attendee_ids"?: (string)[],"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"ends_at"?: string | null,"id"?: string,"is_demo"?: boolean,"location"?: string | null,"notes"?: string | null,"organization_id"?: string | null,"starts_at"?: string,"title"?: string,"updated_at"?: string
+                    "carried_over"?: number,"created_at"?: string,"created_by"?: string | null,"employee_id"?: string,"entitled_days"?: number,"id"?: string,"is_demo"?: boolean,"kind"?: string,"notes"?: string | null,"updated_at"?: string,"year"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "leave_balances_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "leave_balances_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"leave_requests": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"days": number,"decided_at": string | null,"decided_by": string | null,"decision_note": string | null,"deleted_at": string | null,"employee_id": string,"end_date": string,"id": string,"is_demo": boolean,"kind": string,"reason": string | null,"start_date": string,"status": string,"updated_at": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"days": number,"decided_at"?: string | null,"decided_by"?: string | null,"decision_note"?: string | null,"deleted_at"?: string | null,"employee_id": string,"end_date": string,"id"?: string,"is_demo"?: boolean,"kind": string,"reason"?: string | null,"start_date": string,"status"?: string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"days"?: number,"decided_at"?: string | null,"decided_by"?: string | null,"decision_note"?: string | null,"deleted_at"?: string | null,"employee_id"?: string,"end_date"?: string,"id"?: string,"is_demo"?: boolean,"kind"?: string,"reason"?: string | null,"start_date"?: string,"status"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "leave_requests_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "leave_requests_decided_by_fkey"
+      columns: ["decided_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "leave_requests_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"meetings": {
+                  Row: {
+                    "attendee_ids": (string)[],"created_at": string,"created_by": string | null,"deal_id": string | null,"deleted_at": string | null,"ends_at": string | null,"id": string,"is_demo": boolean,"kind": string,"location": string | null,"minutes": string | null,"minutes_approved_at": string | null,"minutes_document_id": string | null,"notes": string | null,"organization_id": string | null,"starts_at": string,"title": string,"updated_at": string
+                  }
+                  Insert: {
+                    "attendee_ids"?: (string)[],"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"ends_at"?: string | null,"id"?: string,"is_demo"?: boolean,"kind"?: string,"location"?: string | null,"minutes"?: string | null,"minutes_approved_at"?: string | null,"minutes_document_id"?: string | null,"notes"?: string | null,"organization_id"?: string | null,"starts_at": string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "attendee_ids"?: (string)[],"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"ends_at"?: string | null,"id"?: string,"is_demo"?: boolean,"kind"?: string,"location"?: string | null,"minutes"?: string | null,"minutes_approved_at"?: string | null,"minutes_document_id"?: string | null,"notes"?: string | null,"organization_id"?: string | null,"starts_at"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1040,6 +1412,12 @@ isOneToOne: false
       columns: ["deal_id"]
 isOneToOne: false
       referencedRelation: "deals"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "meetings_minutes_document_id_fkey"
+      columns: ["minutes_document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "meetings_organization_id_fkey"
@@ -1161,6 +1539,74 @@ isOneToOne: false
       referencedColumns: ["code"]
     }
                   ]
+                },"payroll_items": {
+                  Row: {
+                    "allowances_enc": string | null,"basic_enc": string,"created_at": string,"created_by": string | null,"days_in_period": number,"days_paid": number,"deductions_enc": string | null,"employee_id": string,"id": string,"is_demo": boolean,"note": string | null,"run_id": string,"updated_at": string,"variable_enc": string | null
+                  }
+                  Insert: {
+                    "allowances_enc"?: string | null,"basic_enc": string,"created_at"?: string,"created_by"?: string | null,"days_in_period": number,"days_paid": number,"deductions_enc"?: string | null,"employee_id": string,"id"?: string,"is_demo"?: boolean,"note"?: string | null,"run_id": string,"updated_at"?: string,"variable_enc"?: string | null
+                  }
+                  Update: {
+                    "allowances_enc"?: string | null,"basic_enc"?: string,"created_at"?: string,"created_by"?: string | null,"days_in_period"?: number,"days_paid"?: number,"deductions_enc"?: string | null,"employee_id"?: string,"id"?: string,"is_demo"?: boolean,"note"?: string | null,"run_id"?: string,"updated_at"?: string,"variable_enc"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payroll_items_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "payroll_items_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "payroll_items_run_id_fkey"
+      columns: ["run_id"]
+isOneToOne: false
+      referencedRelation: "payroll_runs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"payroll_runs": {
+                  Row: {
+                    "approved_at": string | null,"approved_by": string | null,"created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"id": string,"is_demo": boolean,"notes": string | null,"paid_at": string | null,"pay_date": string | null,"period": string,"status": string,"transaction_id": string | null,"updated_at": string,"wps_note": string | null,"wps_reference": string | null,"wps_status": string
+                  }
+                  Insert: {
+                    "approved_at"?: string | null,"approved_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"notes"?: string | null,"paid_at"?: string | null,"pay_date"?: string | null,"period": string,"status"?: string,"transaction_id"?: string | null,"updated_at"?: string,"wps_note"?: string | null,"wps_reference"?: string | null,"wps_status"?: string
+                  }
+                  Update: {
+                    "approved_at"?: string | null,"approved_by"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"notes"?: string | null,"paid_at"?: string | null,"pay_date"?: string | null,"period"?: string,"status"?: string,"transaction_id"?: string | null,"updated_at"?: string,"wps_note"?: string | null,"wps_reference"?: string | null,"wps_status"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payroll_runs_approved_by_fkey"
+      columns: ["approved_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "payroll_runs_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "payroll_runs_currency_fkey"
+      columns: ["currency"]
+isOneToOne: false
+      referencedRelation: "currencies"
+      referencedColumns: ["code"]
+    },{
+      foreignKeyName: "payroll_runs_transaction_id_fkey"
+      columns: ["transaction_id"]
+isOneToOne: false
+      referencedRelation: "transactions"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"pipeline_stages": {
                   Row: {
                     "default_probability": number,"is_advanced": boolean,"is_terminal": boolean,"is_won": boolean,"key": string,"label": string,"sort_order": number
@@ -1215,6 +1661,37 @@ isOneToOne: false
       columns: ["owner_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"resolutions": {
+                  Row: {
+                    "body": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"document_id": string | null,"id": string,"is_demo": boolean,"kind": string,"meeting_id": string | null,"passed_on": string | null,"ref_no": string | null,"status": string,"title": string,"updated_at": string
+                  }
+                  Insert: {
+                    "body"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"document_id"?: string | null,"id"?: string,"is_demo"?: boolean,"kind"?: string,"meeting_id"?: string | null,"passed_on"?: string | null,"ref_no"?: string | null,"status"?: string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "body"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"document_id"?: string | null,"id"?: string,"is_demo"?: boolean,"kind"?: string,"meeting_id"?: string | null,"passed_on"?: string | null,"ref_no"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "resolutions_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "resolutions_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "resolutions_meeting_id_fkey"
+      columns: ["meeting_id"]
+isOneToOne: false
+      referencedRelation: "meetings"
       referencedColumns: ["id"]
     }
                   ]
@@ -1398,15 +1875,40 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"transactions": {
+                },"transaction_imports": {
                   Row: {
-                    "account_id": string | null,"amount_minor": number,"bank_account_id": string | null,"counterparty_org_id": string | null,"created_at": string,"created_by": string | null,"currency": string,"deal_id": string | null,"deleted_at": string | null,"description": string,"id": string,"is_demo": boolean,"is_payroll": boolean,"is_transfer": boolean,"txn_date": string,"updated_at": string
+                    "bank_account_id": string | null,"created_at": string,"created_by": string | null,"file_name": string,"id": string,"imported_count": number,"is_demo": boolean,"row_count": number,"skipped_count": number
                   }
                   Insert: {
-                    "account_id"?: string | null,"amount_minor": number,"bank_account_id"?: string | null,"counterparty_org_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency": string,"deal_id"?: string | null,"deleted_at"?: string | null,"description": string,"id"?: string,"is_demo"?: boolean,"is_payroll"?: boolean,"is_transfer"?: boolean,"txn_date": string,"updated_at"?: string
+                    "bank_account_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"file_name": string,"id"?: string,"imported_count"?: number,"is_demo"?: boolean,"row_count"?: number,"skipped_count"?: number
                   }
                   Update: {
-                    "account_id"?: string | null,"amount_minor"?: number,"bank_account_id"?: string | null,"counterparty_org_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deal_id"?: string | null,"deleted_at"?: string | null,"description"?: string,"id"?: string,"is_demo"?: boolean,"is_payroll"?: boolean,"is_transfer"?: boolean,"txn_date"?: string,"updated_at"?: string
+                    "bank_account_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"file_name"?: string,"id"?: string,"imported_count"?: number,"is_demo"?: boolean,"row_count"?: number,"skipped_count"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "transaction_imports_bank_account_id_fkey"
+      columns: ["bank_account_id"]
+isOneToOne: false
+      referencedRelation: "bank_accounts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "transaction_imports_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"transactions": {
+                  Row: {
+                    "account_id": string | null,"amount_minor": number,"bank_account_id": string | null,"bill_id": string | null,"category_source": string,"counterparty_org_id": string | null,"created_at": string,"created_by": string | null,"currency": string,"deal_id": string | null,"deleted_at": string | null,"description": string,"id": string,"import_hash": string | null,"import_id": string | null,"invoice_id": string | null,"is_demo": boolean,"is_payroll": boolean,"is_transfer": boolean,"notes": string | null,"reference": string | null,"txn_date": string,"updated_at": string
+                  }
+                  Insert: {
+                    "account_id"?: string | null,"amount_minor": number,"bank_account_id"?: string | null,"bill_id"?: string | null,"category_source"?: string,"counterparty_org_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency": string,"deal_id"?: string | null,"deleted_at"?: string | null,"description": string,"id"?: string,"import_hash"?: string | null,"import_id"?: string | null,"invoice_id"?: string | null,"is_demo"?: boolean,"is_payroll"?: boolean,"is_transfer"?: boolean,"notes"?: string | null,"reference"?: string | null,"txn_date": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "account_id"?: string | null,"amount_minor"?: number,"bank_account_id"?: string | null,"bill_id"?: string | null,"category_source"?: string,"counterparty_org_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deal_id"?: string | null,"deleted_at"?: string | null,"description"?: string,"id"?: string,"import_hash"?: string | null,"import_id"?: string | null,"invoice_id"?: string | null,"is_demo"?: boolean,"is_payroll"?: boolean,"is_transfer"?: boolean,"notes"?: string | null,"reference"?: string | null,"txn_date"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1420,6 +1922,12 @@ isOneToOne: false
       columns: ["bank_account_id"]
 isOneToOne: false
       referencedRelation: "bank_accounts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "transactions_bill_id_fkey"
+      columns: ["bill_id"]
+isOneToOne: false
+      referencedRelation: "bills"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "transactions_counterparty_org_id_fkey"
@@ -1444,6 +1952,18 @@ isOneToOne: false
       columns: ["deal_id"]
 isOneToOne: false
       referencedRelation: "deals"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "transactions_import_id_fkey"
+      columns: ["import_id"]
+isOneToOne: false
+      referencedRelation: "transaction_imports"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "transactions_invoice_id_fkey"
+      columns: ["invoice_id"]
+isOneToOne: false
+      referencedRelation: "invoices"
       referencedColumns: ["id"]
     }
                   ]
@@ -1477,6 +1997,19 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"v_leave_balances": {
+                  Row: {
+                    "carried_over": number | null,"employee_id": string | null,"entitled_days": number | null,"kind": string | null,"pending_days": number | null,"remaining_days": number | null,"taken_days": number | null,"year": number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "leave_balances_employee_id_fkey"
+      columns: ["employee_id"]
+isOneToOne: false
+      referencedRelation: "employees"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"v_pipeline_by_stage": {
                   Row: {
                     "deal_count": number | null,"is_terminal": boolean | null,"is_won": boolean | null,"key": string | null,"label": string | null,"missing_fx": number | null,"sort_order": number | null,"value_usd": number | null,"weighted_usd": number | null
@@ -1487,11 +2020,32 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "command_center_kpis":
+            "add_employee_compensation":
+{ Args: { "p_basic_minor": number,"p_currency": string,"p_effective_from": string,"p_employee": string,"p_housing_minor"?: number,"p_note"?: string,"p_other_minor"?: number,"p_transport_minor"?: number }; Returns: string
+                           },
+"command_center_kpis":
 { Args: { "p_from": string,"p_points"?: number,"p_to": string }; Returns: Json
+                           },
+"create_payroll_run":
+{ Args: { "p_pay_date"?: string,"p_period": string }; Returns: Json
                            },
 "demo_data_counts":
 { Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"employee_compensation_history":
+{ Args: { "p_employee": string }; Returns: {
+              "basic_minor": number,"created_at": string,"currency": string,"effective_from": string,"housing_minor": number,"id": string,"note": string,"other_minor": number,"total_minor": number,"transport_minor": number
+            }[]
+                           },
+"finance_cash_monthly":
+{ Args: { "p_from": string,"p_to": string }; Returns: {
+              "closing_aed": number,"inflow_aed": number,"month": string,"outflow_aed": number
+            }[]
+                           },
+"finance_monthly":
+{ Args: { "p_from": string,"p_to": string }; Returns: {
+              "account_id": string,"amount_aed": number,"code": string,"missing_fx": number,"month": string,"name": string,"type": string
+            }[]
                            },
 "log_event":
 { Args: { "p_action": string,"p_context"?: Json,"p_row_id": string,"p_table": string }; Returns: undefined
@@ -1509,14 +2063,33 @@ isOneToOne: false
               "document_title": string,"expires_at": string,"file_name": string,"link_id": string,"mime_type": string,"ok": boolean,"reason": string,"recipient_name": string,"storage_path": string,"views_left": number
             }[]
                            },
+"payroll_run_detail":
+{ Args: { "p_run": string }; Returns: {
+              "allowances_minor": number,"basic_minor": number,"days_in_period": number,"days_paid": number,"deductions_minor": number,"employee_id": string,"full_name": string,"item_id": string,"net_minor": number,"note": string,"variable_minor": number
+            }[]
+                           },
+"payroll_wps_data":
+{ Args: { "p_run": string }; Returns: Json
+                           },
+"people_directory":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "department": string,"full_name": string,"id": string,"is_self": boolean,"job_title": string,"manager_name": string,"phone": string,"status": string,"work_email": string
+            }[]
+                           },
 "reveal_bank_account_iban":
 { Args: { "p_id": string }; Returns: string
+                           },
+"reveal_employee_identity":
+{ Args: { "p_employee": string }; Returns: Json
                            },
 "run_expiry_alerts_now":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "run_nightly_scan_now":
 { Args: Record<PropertyKey, never>; Returns: number
+                           },
+"salary_certificate_data":
+{ Args: { "p_employee": string }; Returns: Json
                            },
 "search_documents":
 { Args: { "p_embedding"?: string,"p_limit"?: number,"p_query": string }; Returns: {
@@ -1531,8 +2104,25 @@ isOneToOne: false
 "set_bank_account_iban":
 { Args: { "p_iban": string,"p_id": string }; Returns: undefined
                            },
+"set_employee_identity":
+{ Args: { "p_employee": string,"p_values": Json }; Returns: undefined
+                           },
+"set_payroll_status":
+{ Args: { "p_account"?: string,"p_bank_account"?: string,"p_paid_on"?: string,"p_run": string,"p_status": string }; Returns: undefined
+                           },
+"set_payroll_wps":
+{ Args: { "p_note"?: string,"p_reference"?: string,"p_run": string,"p_status": string }; Returns: undefined
+                           },
 "set_user_role":
 { Args: { "p_role": Database["public"]['Enums']["user_role"],"p_user": string }; Returns: undefined
+                           },
+"suggest_transaction_categories":
+{ Args: { "p_descriptions": (string)[] }; Returns: {
+              "account_id": string,"ord": number,"reason": string,"source": string
+            }[]
+                           },
+"update_payroll_item":
+{ Args: { "p_deductions_minor": number,"p_item": string,"p_note": string,"p_variable_minor": number }; Returns: undefined
                            },
 "verify_introductions_chain":
 { Args: { "p_demo"?: boolean }; Returns: {

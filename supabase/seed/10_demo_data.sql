@@ -13,7 +13,7 @@ create or replace function pg_temp.act(p_user uuid, p_at timestamptz)
 returns void language plpgsql as $$
 begin
   perform set_config('request.jwt.claims',
-                     json_build_object('sub', p_user, 'role', 'authenticated')::text, false);
+                     json_build_object('sub', p_user, 'role', 'authenticated', 'aal', 'aal2')::text, false);
   perform set_config('app.occurred_at', p_at::text, false);
 end $$;
 
@@ -22,6 +22,7 @@ declare
   m uuid := (select id from public.profiles where full_name = 'Maimouna Baba Danpullo' limit 1);
   f uuid := (select id from public.profiles where full_name = 'Fai Shey Derick' limit 1);
   s uuid := (select id from public.profiles where role = 'staff' and email like '%@lantana.test' limit 1);
+  mg uuid := (select id from public.profiles where role = 'manager' and email like '%@lantana.test' limit 1);
   t0 timestamptz := now();
   d0 date := private.today_dubai();
 
@@ -385,7 +386,6 @@ begin
   -- -------------------------------------------------------------------------
   perform pg_temp.act(f, t0 - interval '3 days');
   insert into public.compliance_items (title, category, authority, status, owner_id, notes, is_demo) values
-    ('RAKEZ licence renewal', 'licence', 'RAKEZ', 'unconfirmed', f, 'Enter the renewal date from the current licence.', true),
     ('Corporate Tax registration and annual return', 'tax', 'Federal Tax Authority', 'unconfirmed', f,
      'Registration applies to free-zone companies too. Confirm the filing deadline with the accountant.', true),
     ('VAT registration', 'tax', 'Federal Tax Authority', 'unconfirmed', f,
@@ -414,6 +414,8 @@ begin
     select d0 - 175 + i * 30, 'Co-working desk rent', a.id, bank, -250000, 'AED', true from public.accounts a where a.code = '5000' and a.is_demo;
     insert into public.transactions (txn_date, description, account_id, bank_account_id, amount_minor, currency, is_demo)
     select d0 - 170 + i * 30, 'Software subscriptions', a.id, bank, -65000, 'AED', true from public.accounts a where a.code = '5300' and a.is_demo;
+    -- The last month is paid through a real payroll run below.
+    continue when i = 5;
     insert into public.transactions (txn_date, description, account_id, bank_account_id, amount_minor, currency, is_payroll, is_demo)
     select d0 - 165 + i * 30, 'Payroll run', a.id, bank, -1800000, 'AED', true, true from public.accounts a where a.code = '5500' and a.is_demo;
   end loop;
@@ -526,6 +528,141 @@ begin
 
   insert into public.contract_obligations (contract_id, description, owner_id, is_demo)
   values (k_pjm, 'Agree Lantana''s fee with PJM Advisory for each project before the SPV is formed', f, true);
+
+  -- -------------------------------------------------------------------------
+  -- Phase 5: people, payroll, leave, checklists, bills, budgets, governance.
+  -- Salaries, ID numbers and IBANs are obviously fake and go through the
+  -- same encrypting functions the app uses.
+  -- -------------------------------------------------------------------------
+  declare
+    e_mai uuid := 'c5000000-0000-4000-8000-000000000001';
+    e_fai uuid := 'c5000000-0000-4000-8000-000000000002';
+    e_mgr uuid := 'c5000000-0000-4000-8000-000000000003';
+    e_stf uuid := 'c5000000-0000-4000-8000-000000000004';
+    e_new uuid := 'c5000000-0000-4000-8000-000000000005';
+    cl_new uuid := 'c5100000-0000-4000-8000-000000000001';
+    mt_brd uuid := 'c5200000-0000-4000-8000-000000000001';
+    last_month date := (date_trunc('month', d0) - interval '1 month')::date;
+    this_month date := date_trunc('month', d0)::date;
+    run jsonb;
+    a_sal uuid := (select id from public.accounts where code = '5500' and is_demo);
+  begin
+    perform pg_temp.act(m, t0 - interval '200 days');
+    insert into public.employees (id, profile_id, full_name, job_title, department, work_email, manager_id, employment_type,
+                                  status, on_payroll, start_date, probation_end, work_location,
+                                  visa_expiry, emirates_id_expiry, labour_card_expiry, passport_expiry, insurance_expiry, is_demo) values
+      (e_mai, m, 'Maimouna Baba Danpullo', 'Founder & Managing Director', 'Management', 'maimouna@lantana.test', null, 'full_time',
+       'active', false, d0 - 420, null, 'Ras Al Khaimah', d0 + 260, d0 + 260, null, d0 + 1100, d0 + 120, true),
+      (e_fai, f, 'Fai Shey Derick', 'Principal, Strategy & Business Development', 'Management', 'fai@lantana.test', e_mai, 'full_time',
+       'active', false, d0 - 400, null, 'Ras Al Khaimah', d0 + 45, d0 + 45, null, d0 + 700, d0 + 120, true),
+      (e_mgr, mg, 'Test Manager', 'Operations Manager', 'Operations', 'manager@lantana.test', e_mai, 'full_time',
+       'active', true, d0 - 190, d0 - 10, 'Ras Al Khaimah', d0 + 540, d0 + 540, d0 + 540, d0 + 1500, d0 + 120, true),
+      (e_stf, s, 'Test Staff', 'Investment Analyst', 'Deals', 'staff@lantana.test', e_fai, 'full_time',
+       'active', true, d0 - 160, d0 + 20, 'Ras Al Khaimah', d0 + 570, d0 + 570, d0 + 570, d0 + 2000, d0 + 120, true),
+      (e_new, null, 'Aisha Ndiaye', 'Office & Finance Administrator', 'Operations', null, e_mgr, 'full_time',
+       'onboarding', true, d0 + 12, d0 + 192, 'Ras Al Khaimah', null, null, null, d0 + 1300, null, true);
+
+    perform public.add_employee_compensation(e_mgr, d0 - 190, 'AED', 750000, 250000, 80000, 0, 'Offer letter terms');
+    perform public.add_employee_compensation(e_stf, d0 - 160, 'AED', 500000, 200000, 70000, 0, 'Offer letter terms');
+    perform public.add_employee_compensation(e_new, d0 + 12, 'AED', 450000, 150000, 50000, 0, 'Offer accepted');
+
+    perform public.set_employee_identity(e_mgr, jsonb_build_object(
+      'nationality', 'KE', 'passport_no', 'AK0000001', 'emirates_id_no', '784-1990-0000001-1',
+      'mohre_person_code', '10000000000001', 'iban', 'AE070330000000000000001', 'bank_name', 'Demo Bank', 'bank_routing_code', '803320101'));
+    perform public.set_employee_identity(e_stf, jsonb_build_object(
+      'nationality', 'CM', 'passport_no', 'CM0000002', 'emirates_id_no', '784-1996-0000002-2',
+      'mohre_person_code', '10000000000002', 'iban', 'AE070330000000000000002', 'bank_name', 'Demo Bank', 'bank_routing_code', '803320101'));
+
+    -- Last month paid (it creates its own ledger line), this month in draft.
+    perform pg_temp.act(f, t0 - interval '20 days');
+    run := public.create_payroll_run(last_month, (last_month + interval '1 month - 1 day')::date);
+    perform public.set_payroll_status((run ->> 'id')::uuid, 'approved');
+    perform public.set_payroll_status((run ->> 'id')::uuid, 'paid', bank, a_sal, (last_month + interval '1 month - 1 day')::date);
+    perform public.set_payroll_wps((run ->> 'id')::uuid, 'accepted', 'WPS-DEMO-' || to_char(last_month, 'YYYYMM'), null);
+    perform pg_temp.act(f, t0 - interval '1 day');
+    run := public.create_payroll_run(this_month, (this_month + interval '1 month - 1 day')::date);
+
+    -- Leave
+    perform pg_temp.act(m, t0 - interval '30 days');
+    insert into public.leave_balances (employee_id, year, kind, entitled_days, carried_over, is_demo)
+    select e.id, extract(year from d0)::int, k.kind, k.days, 0, true
+    from (values (e_mgr), (e_stf), (e_new)) as e(id)
+    cross join (values ('annual', 30::numeric), ('sick', 90::numeric)) as k(kind, days);
+    perform pg_temp.act(mg, t0 - interval '40 days');
+    insert into public.leave_requests (employee_id, kind, start_date, end_date, days, reason, is_demo)
+    values (e_mgr, 'annual', d0 - 35, d0 - 31, 5, 'Family visit', true);
+    perform pg_temp.act(m, t0 - interval '39 days');
+    update public.leave_requests set status = 'approved' where employee_id = e_mgr and is_demo;
+    perform pg_temp.act(s, t0 - interval '2 days');
+    insert into public.leave_requests (employee_id, kind, start_date, end_date, days, reason, is_demo)
+    values (e_stf, 'annual', d0 + 21, d0 + 25, 5, 'Travel home to Douala', true);
+
+    -- Onboarding checklist for the new hire
+    perform pg_temp.act(mg, t0 - interval '5 days');
+    insert into public.checklists (id, employee_id, kind, title, is_demo)
+    values (cl_new, e_new, 'onboarding', 'Onboarding: Aisha Ndiaye', true);
+    insert into public.checklist_items (checklist_id, position, title, owner_id, due_date, done_at, is_demo) values
+      (cl_new, 1, 'Signed offer letter on file', mg, d0 - 4, t0 - interval '4 days', true),
+      (cl_new, 2, 'MOHRE employment contract signed', mg, d0 + 2, null, true),
+      (cl_new, 3, 'Entry permit and change of status', mg, d0 + 5, null, true),
+      (cl_new, 4, 'Medical fitness test and Emirates ID biometrics', mg, d0 + 15, null, true),
+      (cl_new, 5, 'Residence visa stamped', mg, d0 + 25, null, true),
+      (cl_new, 6, 'Health insurance enrolled', mg, d0 + 12, null, true),
+      (cl_new, 7, 'Salary account opened and added to WPS', f, d0 + 30, null, true),
+      (cl_new, 8, 'Laptop, email and Lantana Command login', mg, d0 + 12, null, true),
+      (cl_new, 9, 'Confidentiality undertaking signed', s, d0 + 12, null, true);
+
+    -- Finance: bills, rules, budgets, a draft invoice with lines
+    perform pg_temp.act(m, t0 - interval '25 days');
+    insert into public.bills (supplier_org_id, supplier_name, reference, description, account_id, issue_date, due_date,
+                              currency, total_minor, status, paid_at, is_demo)
+    select v.org, v.sup, v.ref, v.descr, a.id, v.iss, v.due, 'AED', v.amt, v.st, v.paid, true
+    from (values
+      (o_rak, null::text, 'RAKEZ-INV-DEMO-1', 'Co-working desk, next quarter', '5000', d0 - 25, d0 + 5, 750000::bigint, 'open', null::date),
+      (null::uuid, 'Demo Accounting LLC', 'DA-DEMO-77', 'Bookkeeping and VAT advice, Q3', '5400', d0 - 40, d0 - 10, 315000, 'open', null),
+      (null::uuid, 'Demo Accounting LLC', 'DA-DEMO-61', 'Bookkeeping, Q2', '5400', d0 - 130, d0 - 100, 315000, 'paid', d0 - 101)
+    ) as v(org, sup, ref, descr, code, iss, due, amt, st, paid)
+    join public.accounts a on a.code = v.code and a.is_demo;
+
+    insert into public.category_rules (pattern, account_id, is_demo)
+    select v.pat, a.id, true
+    from (values ('co-working', '5000'), ('rent', '5000'), ('emirates', '5200'), ('flydubai', '5200'),
+                 ('hotel', '5200'), ('google workspace', '5300'), ('microsoft', '5300'), ('rakez', '5100'),
+                 ('advisory fee', '4000')) as v(pat, code)
+    join public.accounts a on a.code = v.code and a.is_demo;
+
+    insert into public.budgets (account_id, month, amount_minor, currency, is_demo)
+    select a.id, (date_trunc('month', d0) + make_interval(months => mo))::date, v.amt, 'AED', true
+    from (values ('5000', 250000::bigint), ('5100', 50000), ('5200', 1000000), ('5300', 70000),
+                 ('5400', 150000), ('5500', 1800000)) as v(code, amt)
+    join public.accounts a on a.code = v.code and a.is_demo
+    cross join generate_series(-3, 2) as mo;
+
+    insert into public.invoices (invoice_no, organization_id, kind, issue_date, due_date, currency, total_minor, status,
+                                 vat_rate, reference, is_demo)
+    values ('INV-DEMO-003', o_gs, 'retainer', d0, d0 + 30, 'USD', 0, 'draft', 5, 'PO GS-DEMO-2210', true);
+    insert into public.invoice_items (invoice_id, position, description, quantity, unit_price_minor, is_demo)
+    select i.id, v.pos, v.descr, v.qty, v.price, true
+    from public.invoices i
+    cross join (values (1, 'Market-entry advisory retainer, October', 1::numeric, 500000::bigint),
+                       (2, 'Site visit support, Nouakchott (days)', 2::numeric, 75000::bigint)) as v(pos, descr, qty, price)
+    where i.invoice_no = 'INV-DEMO-003';
+
+    -- Governance
+    perform pg_temp.act(m, t0 - interval '60 days');
+    insert into public.corporate_records (kind, title, reference_no, authority, detail, issue_date, expiry_date, document_id, is_demo)
+    values ('lease', 'Co-working agreement (Compass Building)', 'FDCW2089', 'RAKEZ', 'Flexi desk; required for licence renewal',
+            d0 - 280, d0 + 85, doc_rak, true);
+    insert into public.meetings (id, title, kind, starts_at, ends_at, location, attendee_ids, notes, minutes, minutes_approved_at, is_demo)
+    values (mt_brd, 'Board meeting: H2 priorities', 'board', t0 - interval '60 days', t0 - interval '60 days' + interval '90 minutes',
+            'Lantana office, RAK', array[m, f],
+            'Agenda: pipeline review, banking, hiring.',
+            E'Present: Maimouna Baba Danpullo (chair), Fai Shey Derick.\n\n1. Pipeline: focus on the Mauritania supply deal and the Morogoro project.\n2. Banking: open a USD account for fee receipts.\n3. Hiring: approve an office and finance administrator.',
+            t0 - interval '55 days', true);
+    insert into public.resolutions (meeting_id, ref_no, title, body, kind, status, passed_on, is_demo) values
+      (mt_brd, 'BR-DEMO-01', 'Open a USD operating account', 'Resolved that the company opens a USD account for fee receipts, with both principals as joint signatories.', 'board', 'passed', d0 - 60, true),
+      (mt_brd, 'BR-DEMO-02', 'Hire an office and finance administrator', 'Resolved to hire one administrator on a full-time UAE employment contract.', 'board', 'passed', d0 - 60, true);
+  end;
 
   -- Tidy up session state so nothing after this runs as a demo user.
   perform set_config('request.jwt.claims', '', false);
