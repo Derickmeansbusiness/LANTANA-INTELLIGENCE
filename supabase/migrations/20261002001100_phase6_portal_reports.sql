@@ -314,6 +314,13 @@ create policy lantana_docs_room_read on storage.objects for select to authentica
 -- ===========================================================================
 -- Reports
 -- ===========================================================================
+-- Generated packs are saved to the vault as their own document type. This
+-- widens the allowed list; every existing value stays valid.
+alter table public.documents drop constraint documents_doc_type_check;
+alter table public.documents add constraint documents_doc_type_check check (doc_type in (
+  'agreement', 'letter', 'lease', 'presentation', 'proposal', 'invoice', 'certificate',
+  'resolution', 'licence', 'statement', 'report', 'other'));
+
 create table public.reports (
   id uuid primary key default gen_random_uuid(),
   name text not null check (length(trim(name)) > 1),

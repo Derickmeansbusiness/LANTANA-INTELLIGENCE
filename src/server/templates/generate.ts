@@ -1,14 +1,12 @@
 import "server-only";
-import { createHash, randomUUID } from "node:crypto";
 import type { Db } from "@/lib/supabase/server";
-import { fail, ok, type ActionResult } from "@/lib/action-result";
+import { fail, type ActionResult } from "@/lib/action-result";
 import { fmtDate, todayDubai } from "@/lib/dates";
 import { formatMoney, toMajor } from "@/lib/money";
-import { safeFileName } from "@/lib/schemas/documents";
 import { checkValues, templateById } from "@/lib/templates/catalog";
 import type { Company, Field, InvoiceData, SalaryData } from "@/lib/templates/types";
 import type { SessionContext } from "@/server/session";
-import { createDocument, registerVersion } from "@/server/documents";
+import { saveGeneratedFile } from "./save";
 import { renderTemplatePdf } from "./render-pdf";
 import { renderTemplateDocx } from "./render-docx";
 
@@ -171,31 +169,16 @@ export async function generateFromTemplate(db: Db, session: SessionContext, inpu
   const render = format === "pdf" ? renderTemplatePdf : renderTemplateDocx;
   const buf = Buffer.from(await render({ title: built.title, blocks: built.blocks, address: co.address_lines, draft: input.draft !== false }));
 
-  const created = await createDocument(db, {
-    title: built.title.slice(0, 300),
-    doc_type: t.docType,
+  return saveGeneratedFile(db, {
+    title: built.title,
+    docType: t.docType,
     confidentiality: t.confidentiality,
     status: "draft",
     description: `Generated from the ${t.name} template on ${fmtDate(todayDubai())}. Template wording: have counsel review before signature.`,
     tags: ["Template"],
     links,
-  });
-  if (!created.ok) return created;
-
-  const fileName = `${safeFileName(built.title).replace(/\.+$/, "")}.${format}`;
-  const path = `${created.data.id}/${randomUUID()}/${fileName}`;
-  const mime = format === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-  const { error: upErr } = await db.storage.from("documents").upload(path, buf, { contentType: mime, upsert: false });
-  if (upErr) return fail("The document was created but its file couldn't be saved. Try generating again.");
-  const v = await registerVersion(db, {
-    documentId: created.data.id,
-    storagePath: path,
-    fileName,
-    mimeType: mime,
-    sizeBytes: buf.length,
-    sha256: createHash("sha256").update(buf).digest("hex"),
+    format,
+    buf,
     note: `Generated from template (${format.toUpperCase()})`,
   });
-  if (!v.ok) return v;
-  return ok({ id: created.data.id, versionId: v.data.versionId });
 }

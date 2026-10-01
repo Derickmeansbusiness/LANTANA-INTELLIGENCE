@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { BellIcon, CheckCheckIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { relativeTime } from "@/lib/dates";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { entityHref } from "@/lib/entity-href";
 
-type Notification = { id: string; title: string; body: string | null; created_at: string; read_at: string | null };
+type Notification = { id: string; title: string; body: string | null; created_at: string; read_at: string | null; entity_type: string | null; entity_id: string | null };
 
 export function NotificationsBell({ userId }: { userId: string }) {
   const [items, setItems] = useState<Notification[]>([]);
@@ -20,7 +22,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
     let cancelled = false;
     supabase
       .from("notifications")
-      .select("id, title, body, created_at, read_at")
+      .select("id, title, body, created_at, read_at, entity_type, entity_id")
       .order("created_at", { ascending: false })
       .limit(20)
       .then(({ data }) => {
@@ -65,13 +67,27 @@ export function NotificationsBell({ userId }: { userId: string }) {
         </div>
         <ul className="max-h-96 overflow-y-auto">
           {loaded && items.length === 0 && <li className="px-3 py-8 text-center text-sm text-muted-foreground">You&apos;re all caught up.</li>}
-          {items.map((n) => (
-            <li key={n.id} className={cn("border-b px-3 py-2.5 last:border-0", !n.read_at && "bg-gold-wash/40")}>
-              <p className="text-sm">{n.title}</p>
-              {n.body && <p className="mt-0.5 text-xs text-muted-foreground">{n.body}</p>}
-              <p className="mt-1 text-[11px] text-muted-foreground">{relativeTime(n.created_at)}</p>
-            </li>
-          ))}
+          {items.map((n) => {
+            const href = entityHref(n.entity_type, n.entity_id);
+            const body = (
+              <>
+                <p className="text-sm">{n.title}</p>
+                {n.body && <p className="mt-0.5 text-xs text-muted-foreground">{n.body}</p>}
+                <p className="mt-1 text-[11px] text-muted-foreground">{relativeTime(n.created_at)}</p>
+              </>
+            );
+            return (
+              <li key={n.id} className={cn("border-b last:border-0", !n.read_at && "bg-gold-wash/40")}>
+                {href ? (
+                  <Link href={href} scroll={false} className="block px-3 py-2.5 hover:bg-surface-2">
+                    {body}
+                  </Link>
+                ) : (
+                  <div className="px-3 py-2.5">{body}</div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </PopoverContent>
     </Popover>

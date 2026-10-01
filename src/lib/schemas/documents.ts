@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { optionalDate, optionalText, optionalUuid } from "./common";
 
-export const DOC_TYPES = ["agreement", "letter", "lease", "presentation", "proposal", "invoice", "certificate", "resolution", "licence", "statement", "other"] as const;
+export const DOC_TYPES = ["agreement", "letter", "lease", "presentation", "proposal", "invoice", "certificate", "resolution", "licence", "statement", "report", "other"] as const;
 export const CONFIDENTIALITY = ["public", "internal", "confidential", "restricted"] as const;
 export const DOC_STATUSES = ["draft", "awaiting_signature", "signed", "final", "superseded"] as const;
 
