@@ -13,6 +13,7 @@ import { href, type ToolCtx } from "./tools";
 
 export type ActionRow = {
   id: string;
+  tool_use_id: string | null;
   tool: string;
   summary: string;
   preview: Record<string, unknown>;
@@ -22,11 +23,11 @@ export type ActionRow = {
   created_at: string;
 };
 
-export async function createProposal(ctx: ToolCtx, tool: string, payload: unknown, summary: string, preview: Record<string, unknown>) {
+export async function createProposal(ctx: ToolCtx, toolUseId: string, tool: string, payload: unknown, summary: string, preview: Record<string, unknown>) {
   const { data, error } = await ctx.db
     .from("agent_actions")
-    .insert({ thread_id: ctx.threadId, tool, payload: payload as never, summary: summary.slice(0, 500), preview: preview as never })
-    .select("id, tool, summary, preview, status, result, error, created_at")
+    .insert({ thread_id: ctx.threadId, tool_use_id: toolUseId, tool, payload: payload as never, summary: summary.slice(0, 500), preview: preview as never })
+    .select("id, tool_use_id, tool, summary, preview, status, result, error, created_at")
     .single();
   if (error) throw new Error(error.message);
   return data as unknown as ActionRow;
@@ -92,7 +93,7 @@ export async function confirmProposal(db: Db, session: SessionContext, id: strin
   const patch = outcome.ok
     ? { status: "executed" as const, result: { href: outcome.data.href, message: outcome.data.message } }
     : { status: "failed" as const, error: outcome.error.slice(0, 1000) };
-  const { data: row, error } = await db.from("agent_actions").update(patch).eq("id", id).select("id, tool, summary, preview, status, result, error, created_at").single();
+  const { data: row, error } = await db.from("agent_actions").update(patch).eq("id", id).select("id, tool_use_id, tool, summary, preview, status, result, error, created_at").single();
   if (error) return fail(error);
   await db.rpc("log_event", { p_action: "agent_action", p_table: "agent_actions", p_row_id: id, p_context: { tool: a.tool, outcome: patch.status } });
   if (!outcome.ok) return fail(outcome.error);
@@ -106,7 +107,7 @@ export async function rejectProposal(db: Db, session: SessionContext, id: string
     .eq("id", id)
     .eq("user_id", session.userId)
     .eq("status", "proposed")
-    .select("id, tool, summary, preview, status, result, error, created_at");
+    .select("id, tool_use_id, tool, summary, preview, status, result, error, created_at");
   if (error) return fail(error);
   if (!data?.length) return fail("Proposal not found or already decided.");
   return ok({ action: data[0] as unknown as ActionRow });

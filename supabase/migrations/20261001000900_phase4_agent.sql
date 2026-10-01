@@ -72,6 +72,7 @@ create table public.agent_actions (
   id uuid primary key default gen_random_uuid(),
   thread_id uuid references public.agent_threads (id),
   user_id uuid not null default auth.uid() references public.profiles (id),
+  tool_use_id text,
   tool text not null,
   summary text not null check (length(summary) between 1 and 500),
   payload jsonb not null,
@@ -103,7 +104,8 @@ begin
     raise exception 'this action was already %', old.status using errcode = '42501';
   end if;
   if new.tool <> old.tool or new.payload <> old.payload or new.preview <> old.preview or new.summary <> old.summary
-     or new.user_id <> old.user_id or new.thread_id is distinct from old.thread_id then
+     or new.user_id <> old.user_id or new.thread_id is distinct from old.thread_id
+     or new.tool_use_id is distinct from old.tool_use_id then
     raise exception 'a proposed action can only be decided, not edited' using errcode = '42501';
   end if;
   new.decided_at := now();

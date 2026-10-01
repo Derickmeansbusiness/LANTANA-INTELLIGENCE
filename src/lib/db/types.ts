@@ -63,13 +63,13 @@ isOneToOne: false
                   ]
                 },"agent_actions": {
                   Row: {
-                    "created_at": string,"decided_at": string | null,"error": string | null,"executed_at": string | null,"id": string,"payload": NonNullable<Json>,"preview": NonNullable<Json>,"result": Json | null,"status": string,"summary": string,"thread_id": string | null,"tool": string,"user_id": string
+                    "created_at": string,"decided_at": string | null,"error": string | null,"executed_at": string | null,"id": string,"payload": NonNullable<Json>,"preview": NonNullable<Json>,"result": Json | null,"status": string,"summary": string,"thread_id": string | null,"tool": string,"tool_use_id": string | null,"user_id": string
                   }
                   Insert: {
-                    "created_at"?: string,"decided_at"?: string | null,"error"?: string | null,"executed_at"?: string | null,"id"?: string,"payload": NonNullable<Json>,"preview"?: NonNullable<Json>,"result"?: Json | null,"status"?: string,"summary": string,"thread_id"?: string | null,"tool": string,"user_id"?: string
+                    "created_at"?: string,"decided_at"?: string | null,"error"?: string | null,"executed_at"?: string | null,"id"?: string,"payload": NonNullable<Json>,"preview"?: NonNullable<Json>,"result"?: Json | null,"status"?: string,"summary": string,"thread_id"?: string | null,"tool": string,"tool_use_id"?: string | null,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"decided_at"?: string | null,"error"?: string | null,"executed_at"?: string | null,"id"?: string,"payload"?: NonNullable<Json>,"preview"?: NonNullable<Json>,"result"?: Json | null,"status"?: string,"summary"?: string,"thread_id"?: string | null,"tool"?: string,"user_id"?: string
+                    "created_at"?: string,"decided_at"?: string | null,"error"?: string | null,"executed_at"?: string | null,"id"?: string,"payload"?: NonNullable<Json>,"preview"?: NonNullable<Json>,"result"?: Json | null,"status"?: string,"summary"?: string,"thread_id"?: string | null,"tool"?: string,"tool_use_id"?: string | null,"user_id"?: string
                   }
                   Relationships: [
                     {
