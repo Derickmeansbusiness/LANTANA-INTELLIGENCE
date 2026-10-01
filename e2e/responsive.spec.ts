@@ -30,6 +30,9 @@ test("every page fits 375px", async ({ page }) => {
     "/settings",
     "/contracts",
     "/finance",
+    "/finance/ledger",
+    "/people",
+    "/compliance",
     "/deals",
     "/deals?view=table",
     "/deals?view=forecast",
@@ -84,6 +87,35 @@ test("phase 3 pages at 375px in both themes", async ({ page }) => {
     ["/contracts/e0000000-0000-4000-8000-000000000002", "contract-page"],
   ] as const;
   await page.goto("/documents");
+  for (const theme of ["dark", "light"] as const) {
+    await setTheme(page, theme);
+    for (const [path, name] of pages) {
+      await page.goto(path);
+      await expect(page.locator("h1").first()).toBeVisible();
+      expect(await noHorizontalScroll(page), `${path} ${theme}`).toBe(true);
+      await page.screenshot({ path: `${SHOTS}/mobile-${name}-${theme}.png`, fullPage: true });
+    }
+  }
+  await setTheme(page, "dark");
+});
+
+test("phase 5 pages at 375px in both themes", async ({ page }) => {
+  const pages = [
+    ["/finance", "finance"],
+    ["/finance/ledger", "finance-ledger"],
+    ["/finance/invoices", "finance-invoices"],
+    ["/finance/bills", "finance-bills"],
+    ["/finance/budgets", "finance-budgets"],
+    ["/finance/fx", "finance-fx"],
+    ["/people", "people"],
+    ["/people/c5000000-0000-4000-8000-000000000004", "people-employee"],
+    ["/people/leave", "people-leave"],
+    ["/people/payroll", "people-payroll"],
+    ["/compliance", "compliance"],
+    ["/compliance/records", "compliance-records"],
+    ["/compliance/governance", "compliance-governance"],
+  ] as const;
+  await page.goto("/finance");
   for (const theme of ["dark", "light"] as const) {
     await setTheme(page, theme);
     for (const [path, name] of pages) {

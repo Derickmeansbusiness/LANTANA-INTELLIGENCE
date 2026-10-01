@@ -77,6 +77,11 @@ describe("tool registry", () => {
     const staff = apiTools(session("staff")).map((t) => t.name);
     expect(staff).not.toContain("list_contracts");
     expect(staff).not.toContain("compare_contract_to_template");
+    expect(staff).not.toContain("finance_summary");
+    expect(staff).not.toContain("list_invoices");
+    expect(staff).not.toContain("compliance_status");
+    expect(staff).toContain("team_directory");
+    expect(staff).toContain("request_leave");
     expect(apiTools(session("manager")).map((t) => t.name)).toContain("list_contracts");
   });
   it("keeps tool order stable so the prompt prefix caches", () => {

@@ -16,7 +16,7 @@ import {
 import type { Role } from "@/server/session";
 
 /** The phase currently shipped. Modules from later phases show a "P<n>" tag. */
-export const CURRENT_PHASE = 4;
+export const CURRENT_PHASE = 5;
 
 export type NavItem = {
   href: string;

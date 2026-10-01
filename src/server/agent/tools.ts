@@ -13,6 +13,10 @@ import { listIntroductions } from "@/server/ledger";
 import { getContract, listContracts } from "@/server/contracts";
 import { getDocument, searchDocuments } from "@/server/documents";
 import { peopleOptions } from "@/server/lookups";
+import { financeOverview, listBills, listInvoices } from "@/server/finance";
+import { directory, listLeave, myEmployeeId } from "@/server/people";
+import { complianceSummary, listRecords } from "@/server/compliance";
+import { LEAVE_KINDS, workingDays } from "@/lib/people";
 import { redact } from "./redact";
 import { reviewContract } from "./clause-review";
 
@@ -20,7 +24,11 @@ export type ToolCtx = { db: Db; session: SessionContext; threadId: string | null
 
 type Common = { name: string; description: string; input: z.ZodType; label: string; managerOnly?: boolean };
 type ReadTool = Common & { kind: "read"; run: (ctx: ToolCtx, input: never) => Promise<unknown> };
-type WriteTool = Common & { kind: "write"; propose: (ctx: ToolCtx, input: never) => Promise<{ summary: string; preview: Record<string, unknown> } | { error: string }> };
+type WriteTool = Common & {
+  kind: "write";
+  /** `payload`, when given, is what gets executed on confirm (e.g. ids resolved while proposing); otherwise the tool input is. */
+  propose: (ctx: ToolCtx, input: never) => Promise<{ summary: string; preview: Record<string, unknown>; payload?: Record<string, unknown> } | { error: string }>;
+};
 type DraftTool = Common & { kind: "draft" };
 export type AgentTool = ReadTool | WriteTool | DraftTool;
 
@@ -358,6 +366,87 @@ const READ: ReadTool[] = [
       return { summary: r.data.summary, findings: r.data.findings, href: href("contract", i.contract_id) };
     },
   },
+  {
+    kind: "read",
+    name: "finance_summary",
+    label: "Reading the finances",
+    managerOnly: true,
+    description:
+      "Profit and loss by month in AED (income, costs, net; payroll only as an aggregate), money owed to and by Lantana with aging, and for principals cash on hand and runway. Use for questions about revenue, spending, burn or who owes what.",
+    input: z.object({ months: z.number().int().min(1).max(12).optional().describe("How many months back, including this one. Default 6.") }),
+    run: async ({ db, session }, { months }: { months?: number }) => {
+      const o = await financeOverview(db, { months: months ?? 6, principal: session.isPrincipal });
+      const r = (n: number) => Math.round(n);
+      return {
+        currency: "AED",
+        months: o.months.map((m) => ({ month: m.slice(0, 7), income: r(o.pnl.incomeByMonth[m]), costs: r(o.pnl.expenseByMonth[m]), net: r(o.pnl.netByMonth[m]) })),
+        totals: { income: r(o.pnl.totals.income), costs: r(o.pnl.totals.expense), net: r(o.pnl.totals.net) },
+        cost_lines: o.pnl.expense.map((l) => ({ account: l.name, total: r(l.total) })),
+        receivables: { total: r(o.receivables.total), by_age: Object.fromEntries(Object.entries(o.receivables.buckets).map(([k, v]) => [k, r(v)])) },
+        payables: { total: r(o.payables.total), by_age: Object.fromEntries(Object.entries(o.payables.buckets).map(([k, v]) => [k, r(v)])) },
+        cash: o.cash ? { on_hand: o.cash.now == null ? null : r(o.cash.now), runway_months: o.cash.runway == null ? null : Number(o.cash.runway.toFixed(1)) } : "principals only",
+        missing_fx_rates: o.pnl.missingFx,
+        href: "/finance",
+      };
+    },
+  },
+  {
+    kind: "read",
+    name: "list_invoices",
+    label: "Checking invoices",
+    managerOnly: true,
+    description: "Lantana's invoices (what clients owe) and bills (what Lantana owes suppliers), with status and how overdue they are.",
+    input: z.object({ which: z.enum(["invoices", "bills"]).optional(), open_only: z.boolean().optional().describe("Only unpaid ones. Default true.") }),
+    run: async ({ db }, { which, open_only }: { which?: "invoices" | "bills"; open_only?: boolean }) => {
+      const open = open_only !== false;
+      if (which === "bills") {
+        return (await listBills(db))
+          .filter((b) => !open || b.status === "open")
+          .map((b) => ({ id: b.id, supplier: b.supplier, description: b.description, amount: money(b.total_minor, b.currency), due: b.due_date, status: b.status, overdue: b.aging && b.aging !== "current" ? b.aging + " days" : null, href: "/finance/bills" }));
+      }
+      return (await listInvoices(db))
+        .filter((i) => !open || i.status === "sent" || i.status === "draft")
+        .map((i) => ({ id: i.id, invoice_no: i.invoice_no, client: i.client, amount: money(i.total_minor, i.currency), issued: i.issue_date, due: i.due_date, status: i.status, overdue: i.aging && i.aging !== "current" ? i.aging + " days" : null, href: `/finance/invoices/${i.id}` }));
+    },
+  },
+  {
+    kind: "read",
+    name: "team_directory",
+    label: "Looking up the team",
+    description: "Who works at Lantana: names, job titles, departments, work email and who they report to. No pay or ID numbers.",
+    input: z.object({}),
+    run: async ({ db }) => (await directory(db)).map((p) => ({ employee_id: p.id, name: p.full_name, title: p.job_title, department: p.department, email: p.work_email, reports_to: p.manager_name, status: p.status })),
+  },
+  {
+    kind: "read",
+    name: "list_leave",
+    label: "Checking leave",
+    description: "Leave requests visible to the user (everyone's for managers, their own for staff): who is off when, and what's pending approval.",
+    input: z.object({ pending_only: z.boolean().optional() }),
+    run: async ({ db }, { pending_only }: { pending_only?: boolean }) =>
+      (await listLeave(db))
+        .filter((l) => (pending_only ? l.status === "pending" : l.status !== "cancelled" && l.status !== "rejected"))
+        .map((l) => ({ id: l.id, who: l.employee, employee_id: l.employee_id, kind: l.kind, from: l.start_date, to: l.end_date, days: Number(l.days), status: l.status, href: `/people/${l.employee_id}` })),
+  },
+  {
+    kind: "read",
+    name: "compliance_status",
+    label: "Checking compliance",
+    managerOnly: true,
+    description:
+      "Lantana's compliance calendar: confirmed deadlines (licence renewal, filings) with days left, items still waiting for a principal to confirm whether they apply, and corporate records (licences, lease) with expiry dates.",
+    input: z.object({}),
+    run: async ({ db }) => {
+      const today = todayDubai();
+      const [summary, records] = await Promise.all([complianceSummary(db), listRecords(db)]);
+      return {
+        deadlines: summary.upcoming.map((u) => ({ ...u, days_left: u.due_date ? daysBetween(today, u.due_date) : null })),
+        awaiting_confirmation: summary.unconfirmed,
+        records: records.map((r) => ({ kind: r.kind, title: r.title, number: r.reference_no, detail: r.detail, expires: r.expiry_date, days_left: r.expiry_date ? daysBetween(today, r.expiry_date) : null })),
+        href: "/compliance",
+      };
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -491,6 +580,50 @@ const WRITE: WriteTool[] = [
       const { data } = await db.from(table).select(col).eq("id", i.id).maybeSingle<Record<string, string>>();
       if (!data) return { error: "Record not found or not visible to you." };
       return { summary: `Archive ${i.type}: ${data[col]}`, preview: { [i.type]: data[col], reason: i.reason ?? null } };
+    },
+  },
+  {
+    kind: "write",
+    name: "request_leave",
+    label: "Proposing a leave request",
+    description:
+      "Propose a leave request. Staff can only request for themselves; managers may request for anyone. A manager or principal still approves it afterwards. Days are working days (Mon–Fri).",
+    input: z.object({
+      employee_id: uuid.optional().describe("From team_directory. Omit to request for the user themselves."),
+      kind: z.enum(LEAVE_KINDS),
+      start_date: isoDate,
+      end_date: isoDate,
+      days: z.number().positive().max(365).optional().describe("Working days. Omit to count Monday to Friday."),
+      reason: z.string().max(500).optional(),
+    }),
+    propose: async ({ db, session }, i: { employee_id?: string; kind: string; start_date: string; end_date: string; days?: number; reason?: string }) => {
+      const employeeId = i.employee_id ?? (await myEmployeeId(db, session.userId));
+      if (!employeeId) return { error: "The user has no employee record. A manager can add one in People & HR." };
+      const { data: e } = await db.from("employees").select("full_name").eq("id", employeeId).maybeSingle();
+      if (!e) return { error: "Employee not found or not visible to you." };
+      if (i.end_date < i.start_date) return { error: "The leave ends before it starts." };
+      const days = i.days ?? workingDays(i.start_date, i.end_date);
+      if (days <= 0) return { error: "Those dates fall on a weekend. Ask which days they mean." };
+      return {
+        summary: `Request ${i.kind} leave for ${e.full_name}`,
+        preview: { who: e.full_name, kind: i.kind, from: i.start_date, to: i.end_date, days, reason: i.reason ?? null },
+        payload: { employee_id: employeeId, kind: i.kind, start_date: i.start_date, end_date: i.end_date, days, reason: i.reason ?? null },
+      };
+    },
+  },
+  {
+    kind: "write",
+    name: "complete_compliance_item",
+    label: "Proposing to close a compliance item",
+    managerOnly: true,
+    description: "Propose marking a confirmed compliance obligation (from compliance_status) as done. Recurring ones schedule their next occurrence automatically.",
+    input: z.object({ id: uuid }),
+    propose: async ({ db }, i: { id: string }) => {
+      const { data } = await db.from("compliance_items").select("title, status, due_date, recurrence").eq("id", i.id).maybeSingle();
+      if (!data) return { error: "Compliance item not found or not visible to you." };
+      if (data.status === "unconfirmed") return { error: "A principal must first confirm this obligation applies, on the Compliance page." };
+      if (data.status === "done") return { error: "That's already done." };
+      return { summary: `Mark done: ${data.title}`, preview: { obligation: data.title, due: data.due_date, repeats: data.recurrence ?? "no" } };
     },
   },
 ];

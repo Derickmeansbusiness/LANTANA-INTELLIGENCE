@@ -8,6 +8,8 @@ import { moveDealStage, setDealArchived } from "@/server/deals";
 import { addObligation, setContractArchived } from "@/server/contracts";
 import { setDocumentArchived } from "@/server/documents";
 import { generateFromTemplate } from "@/server/templates/generate";
+import { requestLeave } from "@/server/people";
+import { setObligationStatus } from "@/server/compliance";
 import { PROPOSAL_TTL_HOURS } from "./config";
 import { href, type ToolCtx } from "./tools";
 
@@ -52,6 +54,11 @@ const EXECUTORS: Record<string, Exec> = {
     const r = await generateFromTemplate(db, s, { templateId: p.template_id as string, values: (p.values ?? {}) as Record<string, unknown>, format: (p.format as "pdf" | "docx") ?? "pdf", draft: true, links: (p.links ?? []) as never });
     return r.ok ? ok({ href: href("document", r.data.id), message: "Saved to the vault as a draft", versionId: r.data.versionId }) : r;
   },
+  request_leave: async (db, _s, p) => {
+    const r = await requestLeave(db, p);
+    return asResult(r, () => `/people/${p.employee_id as string}`, "Leave requested");
+  },
+  complete_compliance_item: async (db, _s, p) => asResult(await setObligationStatus(db, p.id as string, "done"), () => "/compliance", "Marked done"),
   archive_record: async (db, _s, p) => {
     const id = p.id as string;
     const r =

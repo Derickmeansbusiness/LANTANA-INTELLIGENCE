@@ -115,7 +115,7 @@ test.describe.serial("principal · templates", () => {
 
   test("NCNDA as PDF from the directory, saved as a draft and indexed", async ({ page }) => {
     await page.goto("/documents/templates");
-    await expect(page.getByText("Available once payroll is live (Phase 5)", { exact: false })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Use the Salary Certificate template" })).toBeVisible();
     await page.getByRole("link", { name: "Use the NCNDA template" }).click();
     await page.getByLabel("Fill from the directory").selectOption({ label: "PJM Advisory" });
     await expect(page.getByLabel("Counterparty (legal name)")).toHaveValue("PJM Advisory");

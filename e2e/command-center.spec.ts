@@ -71,7 +71,7 @@ test.describe("principal", () => {
   });
 
   test("every module page renders", async ({ page }) => {
-    for (const path of ["/people", "/finance", "/compliance", "/reports"]) {
+    for (const path of ["/reports"]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { name: /Arrives in Phase \d/ }).filter({ visible: true })).toBeVisible();
     }
@@ -111,7 +111,11 @@ test.describe("staff", () => {
   });
 
   test("direct URL to a management module is refused", async ({ page }) => {
-    await page.goto("/finance");
+    for (const path of ["/finance", "/compliance", "/people/payroll"]) {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { name: "Not found" }).or(page.getByText("Payroll is visible to principals only."))).toBeVisible();
+    }
+    await page.goto("/reports");
     await expect(page.getByText("Your role doesn't have access to this module")).toBeVisible();
   });
 

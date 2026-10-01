@@ -203,7 +203,7 @@ async function runTool(ctx: ToolCtx, use: Anthropic.Beta.BetaToolUseBlock, emit:
     if (def.kind === "write") {
       const p = await def.propose(ctx, parsed.data as never);
       if ("error" in p) return err(p.error);
-      const action = await createProposal(ctx, use.id, def.name, parsed.data, p.summary, p.preview);
+      const action = await createProposal(ctx, use.id, def.name, p.payload ?? parsed.data, p.summary, p.preview);
       emit({ type: "tool", id: use.id, name: use.name, label: def.label, status: "done" });
       emit({ type: "proposal", action });
       return { type: "tool_result", tool_use_id: use.id, content: JSON.stringify({ proposal_id: action.id, status: "awaiting_user_confirmation", summary: p.summary }) };
