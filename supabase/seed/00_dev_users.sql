@@ -1,7 +1,7 @@
 -- LOCAL DEVELOPMENT ONLY. Never run against a hosted project.
 -- Creates one login per role. Password for all: lantana-dev-2026
 -- Principals use the real names (demo data looks them up by full_name);
--- the manager and staff accounts exist only for RLS testing.
+-- the manager, staff and guest (external data-room) accounts exist only for testing.
 
 do $$
 declare
@@ -12,7 +12,8 @@ begin
       ('c0000000-0000-4000-8000-000000000001'::uuid, 'maimouna@lantana.test', 'Maimouna Baba Danpullo', 'principal'),
       ('c0000000-0000-4000-8000-000000000002'::uuid, 'fai@lantana.test',      'Fai Shey Derick',        'principal'),
       ('c0000000-0000-4000-8000-000000000003'::uuid, 'manager@lantana.test',  'Test Manager',           'manager'),
-      ('c0000000-0000-4000-8000-000000000004'::uuid, 'staff@lantana.test',    'Test Staff',             'staff')
+      ('c0000000-0000-4000-8000-000000000004'::uuid, 'staff@lantana.test',    'Test Staff',             'staff'),
+      ('c0000000-0000-4000-8000-000000000005'::uuid, 'guest@lantana.test',    'Test Guest',             'external')
     ) as t(id, email, full_name, role)
   loop
     insert into auth.users (

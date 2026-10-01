@@ -664,6 +664,33 @@ begin
       (mt_brd, 'BR-DEMO-02', 'Hire an office and finance administrator', 'Resolved to hire one administrator on a full-time UAE employment contract.', 'board', 'passed', d0 - 60, true);
   end;
 
+  -- -------------------------------------------------------------------------
+  -- Phase 6: a data room for the Morogoro investors, a scheduled pack, an
+  -- invite waiting to be accepted. Demo documents have no files yet, so the
+  -- room starts empty; add a PDF from the vault to try the guest view.
+  -- -------------------------------------------------------------------------
+  declare
+    g uuid := (select id from public.profiles where email = 'guest@lantana.test' limit 1);
+    room uuid := 'c6000000-0000-4000-8000-000000000001';
+  begin
+    perform pg_temp.act(f, t0 - interval '3 days');
+    insert into public.data_rooms (id, name, description, deal_id, organization_id, status, expires_on, allow_download, is_demo)
+    values (room, 'Morogoro agro-processing: investor room',
+            'Teaser, site photos and the feasibility summary for shortlisted GCC investors.',
+            d_mor, o_fam, 'open', d0 + 45, false, true);
+    if g is not null then
+      insert into public.data_room_members (room_id, email, full_name, company, is_demo)
+      values (room, 'guest@lantana.test', 'Test Guest', 'Faminas Investment Group', true);
+    end if;
+    insert into public.data_room_members (room_id, email, full_name, company, is_demo)
+    values (room, 'analyst@faminas.example', 'Faminas analyst', 'Faminas Investment Group', true);
+
+    perform pg_temp.act(m, t0 - interval '10 days');
+    insert into public.report_schedules (pack, cadence, recipient_ids, is_demo)
+    values ('weekly_management', 'weekly', array[m, f], true),
+           ('monthly_board', 'monthly', array[m, f], true);
+  end;
+
   -- Tidy up session state so nothing after this runs as a demo user.
   perform set_config('request.jwt.claims', '', false);
   perform set_config('app.occurred_at', '', false);

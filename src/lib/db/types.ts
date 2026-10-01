@@ -660,6 +660,130 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"data_room_documents": {
+                  Row: {
+                    "added_at": string,"added_by": string | null,"document_id": string,"is_demo": boolean,"position": number,"room_id": string
+                  }
+                  Insert: {
+                    "added_at"?: string,"added_by"?: string | null,"document_id": string,"is_demo"?: boolean,"position"?: number,"room_id": string
+                  }
+                  Update: {
+                    "added_at"?: string,"added_by"?: string | null,"document_id"?: string,"is_demo"?: boolean,"position"?: number,"room_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "data_room_documents_added_by_fkey"
+      columns: ["added_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "data_room_documents_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "data_room_documents_room_id_fkey"
+      columns: ["room_id"]
+isOneToOne: false
+      referencedRelation: "data_rooms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"data_room_events": {
+                  Row: {
+                    "document_id": string | null,"id": number,"is_demo": boolean,"kind": string,"occurred_at": string,"profile_id": string | null,"room_id": string,"storage_path": string | null
+                  }
+                  Insert: {
+                    "document_id"?: string | null,"id"?: never,"is_demo"?: boolean,"kind": string,"occurred_at"?: string,"profile_id"?: string | null,"room_id": string,"storage_path"?: string | null
+                  }
+                  Update: {
+                    "document_id"?: string | null,"id"?: never,"is_demo"?: boolean,"kind"?: string,"occurred_at"?: string,"profile_id"?: string | null,"room_id"?: string,"storage_path"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "data_room_events_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "data_room_events_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "data_room_events_room_id_fkey"
+      columns: ["room_id"]
+isOneToOne: false
+      referencedRelation: "data_rooms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"data_room_members": {
+                  Row: {
+                    "company": string | null,"created_at": string,"email": string,"full_name": string | null,"id": string,"invited_by": string | null,"is_demo": boolean,"profile_id": string | null,"revoked_at": string | null,"room_id": string
+                  }
+                  Insert: {
+                    "company"?: string | null,"created_at"?: string,"email": string,"full_name"?: string | null,"id"?: string,"invited_by"?: string | null,"is_demo"?: boolean,"profile_id"?: string | null,"revoked_at"?: string | null,"room_id": string
+                  }
+                  Update: {
+                    "company"?: string | null,"created_at"?: string,"email"?: string,"full_name"?: string | null,"id"?: string,"invited_by"?: string | null,"is_demo"?: boolean,"profile_id"?: string | null,"revoked_at"?: string | null,"room_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "data_room_members_invited_by_fkey"
+      columns: ["invited_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "data_room_members_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "data_room_members_room_id_fkey"
+      columns: ["room_id"]
+isOneToOne: false
+      referencedRelation: "data_rooms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"data_rooms": {
+                  Row: {
+                    "allow_download": boolean,"created_at": string,"created_by": string | null,"deal_id": string | null,"deleted_at": string | null,"description": string | null,"expires_on": string | null,"id": string,"is_demo": boolean,"name": string,"organization_id": string | null,"status": string,"updated_at": string
+                  }
+                  Insert: {
+                    "allow_download"?: boolean,"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"expires_on"?: string | null,"id"?: string,"is_demo"?: boolean,"name": string,"organization_id"?: string | null,"status"?: string,"updated_at"?: string
+                  }
+                  Update: {
+                    "allow_download"?: boolean,"created_at"?: string,"created_by"?: string | null,"deal_id"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"expires_on"?: string | null,"id"?: string,"is_demo"?: boolean,"name"?: string,"organization_id"?: string | null,"status"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "data_rooms_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "data_rooms_deal_id_fkey"
+      columns: ["deal_id"]
+isOneToOne: false
+      referencedRelation: "deals"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "data_rooms_organization_id_fkey"
+      columns: ["organization_id"]
+isOneToOne: false
+      referencedRelation: "organizations"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"deal_members": {
                   Row: {
                     "created_at": string,"deal_id": string,"role": string,"user_id": string
@@ -1664,6 +1788,81 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"report_runs": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"document_id": string | null,"id": string,"is_demo": boolean,"name": string,"pack": string | null,"period_from": string,"period_to": string,"report_id": string | null
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"document_id"?: string | null,"id"?: string,"is_demo"?: boolean,"name": string,"pack"?: string | null,"period_from": string,"period_to": string,"report_id"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"document_id"?: string | null,"id"?: string,"is_demo"?: boolean,"name"?: string,"pack"?: string | null,"period_from"?: string,"period_to"?: string,"report_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "report_runs_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "report_runs_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "report_runs_report_id_fkey"
+      columns: ["report_id"]
+isOneToOne: false
+      referencedRelation: "reports"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"report_schedules": {
+                  Row: {
+                    "active": boolean,"cadence": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"id": string,"is_demo": boolean,"last_notified_on": string | null,"pack": string | null,"recipient_ids": (string)[],"report_id": string | null,"updated_at": string
+                  }
+                  Insert: {
+                    "active"?: boolean,"cadence": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"last_notified_on"?: string | null,"pack"?: string | null,"recipient_ids"?: (string)[],"report_id"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "active"?: boolean,"cadence"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"last_notified_on"?: string | null,"pack"?: string | null,"recipient_ids"?: (string)[],"report_id"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "report_schedules_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "report_schedules_report_id_fkey"
+      columns: ["report_id"]
+isOneToOne: false
+      referencedRelation: "reports"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"reports": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"id": string,"is_demo": boolean,"name": string,"period": string,"sections": (string)[],"shared": boolean,"updated_at": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"name": string,"period"?: string,"sections": (string)[],"shared"?: boolean,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"is_demo"?: boolean,"name"?: string,"period"?: string,"sections"?: (string)[],"shared"?: boolean,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "reports_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"resolutions": {
                   Row: {
                     "body": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"document_id": string | null,"id": string,"is_demo": boolean,"kind": string,"meeting_id": string | null,"passed_on": string | null,"ref_no": string | null,"status": string,"title": string,"updated_at": string
@@ -1967,6 +2166,31 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"user_invites": {
+                  Row: {
+                    "accepted_at": string | null,"accepted_profile_id": string | null,"created_at": string,"email": string,"expires_at": string,"full_name": string | null,"id": string,"invited_by": string | null,"is_demo": boolean,"note": string | null,"revoked_at": string | null,"role": Database["public"]['Enums']["user_role"],"title": string | null
+                  }
+                  Insert: {
+                    "accepted_at"?: string | null,"accepted_profile_id"?: string | null,"created_at"?: string,"email": string,"expires_at"?: string,"full_name"?: string | null,"id"?: string,"invited_by"?: string | null,"is_demo"?: boolean,"note"?: string | null,"revoked_at"?: string | null,"role": Database["public"]['Enums']["user_role"],"title"?: string | null
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"accepted_profile_id"?: string | null,"created_at"?: string,"email"?: string,"expires_at"?: string,"full_name"?: string | null,"id"?: string,"invited_by"?: string | null,"is_demo"?: boolean,"note"?: string | null,"revoked_at"?: string | null,"role"?: Database["public"]['Enums']["user_role"],"title"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "user_invites_accepted_profile_id_fkey"
+      columns: ["accepted_profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "user_invites_invited_by_fkey"
+      columns: ["invited_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -2050,6 +2274,12 @@ isOneToOne: false
 "log_event":
 { Args: { "p_action": string,"p_context"?: Json,"p_row_id": string,"p_table": string }; Returns: undefined
                            },
+"log_export":
+{ Args: { "p_scope": string,"p_tables": (string)[] }; Returns: undefined
+                           },
+"log_room_open":
+{ Args: { "p_room": string }; Returns: undefined
+                           },
 "match_investors":
 { Args: { "p_deal": string,"p_limit"?: number }; Returns: {
               "already_involved": boolean,"country": string,"geo_points": number,"name": string,"organization_id": string,"reasons": (string)[],"score": number,"sector_points": number,"ticket_points": number
@@ -2057,6 +2287,11 @@ isOneToOne: false
                            },
 "move_deal_stage":
 { Args: { "p_deal": string,"p_note"?: string,"p_stage": string }; Returns: undefined
+                           },
+"open_room_document":
+{ Args: { "p_document": string,"p_download"?: boolean,"p_room": string }; Returns: {
+              "allow_download": boolean,"file_name": string,"mime_type": string,"room_name": string,"storage_path": string,"title": string,"viewer_email": string
+            }[]
                            },
 "open_share_link":
 { Args: { "p_ip_hash"?: string,"p_token": string,"p_user_agent"?: string }; Returns: {
@@ -2074,6 +2309,11 @@ isOneToOne: false
 "people_directory":
 { Args: Record<PropertyKey, never>; Returns: {
               "department": string,"full_name": string,"id": string,"is_self": boolean,"job_title": string,"manager_name": string,"phone": string,"status": string,"work_email": string
+            }[]
+                           },
+"portal_room_documents":
+{ Args: { "p_room": string }; Returns: {
+              "doc_type": string,"document_id": string,"mime_type": string,"size_bytes": number,"sort_order": number,"title": string,"updated_at": string,"version_no": number
             }[]
                            },
 "reveal_bank_account_iban":

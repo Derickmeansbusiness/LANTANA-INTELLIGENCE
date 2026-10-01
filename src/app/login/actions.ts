@@ -21,11 +21,12 @@ export async function sendMagicLink(_: LoginState, form: FormData): Promise<Logi
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const { error } = await supabase.auth.signInWithOtp({
     email: email.data,
-    // Invite-only: never create an account from the login page.
-    options: { shouldCreateUser: false, emailRedirectTo: `${site}/auth/callback?next=${encodeURIComponent(next)}` },
+    // An invited address gets its account on first sign-in; the database
+    // refuses everyone else (private.handle_new_user), so this stays invite-only.
+    options: { shouldCreateUser: true, emailRedirectTo: `${site}/auth/callback?next=${encodeURIComponent(next)}` },
   });
-  // Don't reveal whether the address has an account.
-  if (error && !/signups not allowed|not found/i.test(error.message)) {
+  // Don't reveal whether the address has an account or an invite.
+  if (error && !/signups not allowed|not found|invite-only|database error/i.test(error.message)) {
     return { error: "Couldn't send the link just now. Try again in a minute." };
   }
   return { sent: email.data };
