@@ -68,7 +68,7 @@ export async function getThreadView(db: Db, id: string): Promise<{ thread: Threa
 }
 
 export async function updateThread(db: Db, id: string, patch: { title?: string; pinned?: boolean; archived?: boolean }): Promise<ActionResult> {
-  const row: Record<string, unknown> = {};
+  const row: { title?: string; pinned?: boolean; deleted_at?: string | null } = {};
   if (patch.title !== undefined) {
     const t = patch.title.trim();
     if (t.length < 1 || t.length > 200) return fail("Titles are 1–200 characters.");
