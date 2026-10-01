@@ -2,7 +2,8 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { MenuIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, SearchIcon, SparklesIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,12 +12,24 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { BrandMark, Wordmark } from "@/components/brand-mark";
 import { navFor, isActive, NAV, CURRENT_PHASE } from "./nav";
 import { UserMenu } from "./user-menu";
-import { CommandPalette } from "./command-palette";
 import { NotificationsBell } from "./notifications-bell";
-import { AgentPanel } from "./agent-panel";
 import { DateRangePicker } from "./date-range-picker";
 import { RecordSheet } from "./record-sheet";
-import { TaskSheet } from "@/components/tasks/task-sheet";
+
+// Loaded on first use, not with every page: the palette, the agent panel and
+// the task editor (which brings form validation) are only needed on demand.
+const CommandPalette = dynamic(() => import("./command-palette").then((m) => m.CommandPalette), { ssr: false });
+const AgentPanel = dynamic(() => import("./agent-panel").then((m) => m.AgentPanel), { ssr: false });
+const TaskSheet = dynamic(() => import("@/components/tasks/task-sheet").then((m) => m.TaskSheet), { ssr: false });
+
+/** Mounts the task editor once the URL asks for a task, then keeps it. */
+function LazyTaskSheet() {
+  const sp = useSearchParams();
+  const wanted = sp.has("task") || (sp.get("record") ?? "").startsWith("task:");
+  const [used, setUsed] = useState(false);
+  if (wanted && !used) setUsed(true);
+  return used ? <TaskSheet /> : null;
+}
 import type { ShellUser } from "./types";
 
 const COLLAPSE_KEY = "lc.sidebar.collapsed";
@@ -53,6 +66,11 @@ export function AppShell({ user, agentEnabled, children }: { user: ShellUser; ag
   const setMobileOpen = (o: boolean) => setDrawerPath(o ? pathname : null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [agentOpen, setAgentOpen] = useState(false);
+  // Once opened, keep them mounted so state (and the close animation) survive.
+  const [paletteUsed, setPaletteUsed] = useState(false);
+  const [agentUsed, setAgentUsed] = useState(false);
+  if (paletteOpen && !paletteUsed) setPaletteUsed(true);
+  if (agentOpen && !agentUsed) setAgentUsed(true);
   const [question, setQuestion] = useState<string | null>(null);
   const takeQuestion = useCallback(() => setQuestion(null), []);
   const pendingG = useRef<number | null>(null);
@@ -138,14 +156,14 @@ export function AppShell({ user, agentEnabled, children }: { user: ShellUser; ag
       </div>
 
       <Suspense fallback={null}>
-        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} role={user.role} onAsk={(q) => (setQuestion(q), setAgentOpen(true))} />
+        {paletteUsed && <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} role={user.role} onAsk={(q) => (setQuestion(q), setAgentOpen(true))} />}
       </Suspense>
       <Suspense>
-        <AgentPanel open={agentOpen} onOpenChange={setAgentOpen} enabled={agentEnabled} question={question} onQuestionTaken={takeQuestion} />
+        {agentUsed && <AgentPanel open={agentOpen} onOpenChange={setAgentOpen} enabled={agentEnabled} question={question} onQuestionTaken={takeQuestion} />}
       </Suspense>
       <Suspense fallback={null}>
         <RecordSheet />
-        <TaskSheet />
+        <LazyTaskSheet />
       </Suspense>
     </div>
   );
