@@ -5,6 +5,7 @@ import {
   Document,
   Footer,
   Header,
+  ImageRun,
   Packer,
   PageNumber,
   Paragraph,
@@ -17,6 +18,10 @@ import {
   WidthType,
 } from "docx";
 import type { Block } from "@/lib/templates/types";
+import { MARK_PNG_BASE64 } from "./assets/mark-png";
+
+// The traced logo mark as PNG (Word can't take the SVG paths directly).
+const MARK_PNG = Buffer.from(MARK_PNG_BASE64, "base64");
 
 // Same palette as the PDF letterhead, without the leading '#'.
 const GOLD = "D4A045";
@@ -126,8 +131,14 @@ export async function renderTemplateDocx(opts: { title: string; blocks: Block[];
               new TableCell({
                 width: { size: 50, type: WidthType.PERCENTAGE },
                 children: [
-                  new Paragraph({ children: [run("LANTANA VISION", { size: 26, font: "Georgia" })] }),
-                  new Paragraph({ children: [run("CONSULTING", { size: 13, color: MUTED })] }),
+                  new Paragraph({
+                    children: [
+                      new ImageRun({ type: "png", data: MARK_PNG, transformation: { width: 40, height: 40 } }),
+                      new TextRun({ text: "  " }),
+                      run("LANTANA VISION", { size: 26, font: "Georgia" }),
+                    ],
+                  }),
+                  new Paragraph({ indent: { left: 760 }, children: [run("GROUP", { size: 13, color: GOLD })] }),
                 ],
               }),
               new TableCell({
@@ -152,7 +163,7 @@ export async function renderTemplateDocx(opts: { title: string; blocks: Block[];
         border: { top: { style: BorderStyle.SINGLE, size: 4, color: "B08D57", space: 4 } },
         tabStops: [{ type: TabStopType.RIGHT, position: 9000 }],
         children: [
-          run("Lantana Vision FZ-LLC • Ras Al Khaimah, UAE • www.lantanavision.com", { size: 14, color: MUTED }),
+          run("Lantana Vision FZ-LLC • Ras Al Khaimah, UAE • info@lantanavision.com • www.lantanavision.com", { size: 14, color: MUTED }),
           new TextRun({ text: "\t" }),
           new TextRun({ children: ["Page ", PageNumber.CURRENT, " of ", PageNumber.TOTAL_PAGES], size: 14, color: MUTED, font: FONT }),
         ],

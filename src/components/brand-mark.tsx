@@ -1,15 +1,15 @@
 import { cn } from "@/lib/utils";
+import { MARK_AFRICA, MARK_ARC, MARK_VIEWBOX } from "@/lib/brand-paths";
 
 /**
- * Placeholder mark until the real logo SVG is supplied: a gold ring crossed
- * by a bridge arc, echoing the Lantana Vision logo.
+ * The Lantana Vision mark: Africa crossed by a gold bridge arc. The silhouette
+ * takes the current text colour, so it is charcoal on light and ivory on dark.
  */
 export function BrandMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden className={cn("size-7", className)}>
-      <circle cx="16" cy="16" r="14" fill="none" stroke="var(--brand-gold)" strokeWidth="1.75" />
-      <path d="M6 20 Q16 6 26 20" fill="none" stroke="var(--brand-gold)" strokeWidth="1.75" strokeLinecap="round" />
-      <path d="M11 20 v-3.2 M16 20 v-6 M21 20 v-3.2" stroke="var(--brand-gold-soft)" strokeWidth="1.25" strokeLinecap="round" />
+    <svg viewBox={MARK_VIEWBOX} aria-hidden className={cn("size-7 text-foreground", className)}>
+      <path d={MARK_AFRICA} fill="currentColor" fillRule="evenodd" />
+      <path d={MARK_ARC} fill="var(--brand-gold)" fillRule="evenodd" />
     </svg>
   );
 }

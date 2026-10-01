@@ -1,5 +1,6 @@
 import "server-only";
-import { Circle, Font, Path, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+import { Font, Path, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+import { MARK_AFRICA, MARK_ARC, MARK_VIEWBOX } from "@/lib/brand-paths";
 
 // Never split words: hyphenated names and figures read badly on legal records.
 Font.registerHyphenationCallback((word) => [word]);
@@ -21,7 +22,7 @@ export const base = StyleSheet.create({
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   brand: { flexDirection: "row", alignItems: "center", gap: 8 },
   brandName: { fontFamily: "Times-Roman", fontSize: 14, letterSpacing: 1.2 },
-  brandSub: { fontSize: 7, letterSpacing: 2, color: MUTED, marginTop: 2 },
+  brandSub: { fontSize: 7, letterSpacing: 2.4, color: GOLD, marginTop: 2 },
   address: { fontSize: 7.5, color: MUTED, textAlign: "right", lineHeight: 1.4 },
   rule: { height: 1.2, backgroundColor: GOLD, marginTop: 12, marginBottom: 16 },
   footer: { position: "absolute", bottom: 22, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", fontSize: 7, color: MUTED, borderTopWidth: 0.5, borderTopColor: GOLD_SOFT, paddingTop: 6 },
@@ -36,13 +37,13 @@ export function Letterhead({ address }: { address: string[] }) {
     <View fixed>
       <View style={base.headerRow}>
         <View style={base.brand}>
-          <Svg width={26} height={26} viewBox="0 0 32 32">
-            <Circle cx="16" cy="16" r="14" stroke={GOLD} strokeWidth={1.75} fill="none" />
-            <Path d="M6 20 Q16 6 26 20" stroke={GOLD} strokeWidth={1.75} fill="none" />
+          <Svg width={34} height={34} viewBox={MARK_VIEWBOX}>
+            <Path d={MARK_AFRICA} fill={CHARCOAL} />
+            <Path d={MARK_ARC} fill={GOLD} />
           </Svg>
           <View>
             <Text style={base.brandName}>LANTANA VISION</Text>
-            <Text style={base.brandSub}>CONSULTING</Text>
+            <Text style={base.brandSub}>GROUP</Text>
           </View>
         </View>
         <View>
@@ -61,7 +62,7 @@ export function Letterhead({ address }: { address: string[] }) {
 export function Footer() {
   return (
     <View style={base.footer} fixed>
-      <Text>Lantana Vision FZ-LLC • Ras Al Khaimah, UAE • www.lantanavision.com</Text>
+      <Text>Lantana Vision FZ-LLC • Ras Al Khaimah, UAE • info@lantanavision.com • www.lantanavision.com</Text>
       <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
     </View>
   );
