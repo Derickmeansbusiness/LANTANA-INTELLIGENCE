@@ -13,10 +13,8 @@
   --brand-gold-soft: #b08d57;
   --brand-sand: #f5f0e8;
 
-  --success: #3fa67a;
-  --warning: #d98e3a;
-  --danger: #c9544d;
-  --info: #4f8cc9;
+  /* Solid fill behind white text (destructive buttons): 5.9:1 in both themes. */
+  --danger-solid: #b23b34;
 
   --radius: 12px;
 }
@@ -32,6 +30,12 @@
   --border: #e6dfd3;
   --foreground: #2f2a32;
   --muted-foreground: #6b6570; /* #8A8490 fails AA on white; darkened */
+  /* Status colours are used as text and on their own 10-15% tints, so each
+     theme has its own: >= 4.6:1 on surface, surface-2 and the tint (axe-checked). */
+  --success: #286a4e;
+  --warning: #835119;
+  --danger: #a43832;
+  --info: #2d6194;
   --gold-ink: #8c6420; /* gold readable as text on light surfaces */
   --gold-wash: color-mix(in oklab, var(--brand-gold) 14%, transparent);
   --chart-grid: #ece6db;
@@ -51,7 +55,11 @@
   --surface-2: #24202a;
   --border: #332e38;
   --foreground: #ece8ef;
-  --muted-foreground: #8a8490;
+  --muted-foreground: #a09aa6; /* #8A8490 was 4.4:1 on surface-2 */
+  --success: #43b081;
+  --warning: #d98e3a;
+  --danger: #d98782;
+  --info: #6fa1d3;
   --gold-ink: #d4a045;
   --gold-wash: color-mix(in oklab, var(--brand-gold) 12%, transparent);
   --chart-grid: #2a262f;
@@ -77,6 +85,7 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-danger-solid: var(--danger-solid);
   --color-info: var(--info);
 
   /* shadcn-compatible aliases */

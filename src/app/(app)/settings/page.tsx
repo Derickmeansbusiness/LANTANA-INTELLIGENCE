@@ -8,6 +8,8 @@ import { getSession } from "@/server/session";
 import { WipeDemo } from "./wipe-demo";
 import { RunAlerts, RunScan } from "./run-alerts";
 import { Invites, PeopleAccess } from "./access";
+import { Backup } from "./backup";
+import { EXPORT_TABLES } from "@/server/backup";
 import { listInvites } from "@/server/data-rooms";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -207,8 +209,25 @@ export default async function SettingsPage() {
           <Card>
             <CardHeader>
               <div>
+                <CardTitle>Backup and export</CardTitle>
+                <CardDescription>
+                  Every business table as one JSON file, or any table as CSV, read under your own access. Encrypted identity numbers, pay and IBANs are left out, and
+                  files stay in storage (the export lists each one’s path and SHA-256). Each export is written to the audit log.
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Backup tables={EXPORT_TABLES} />
+            </CardContent>
+          </Card>
+        )}
+
+        {session.isPrincipal && (
+          <Card>
+            <CardHeader>
+              <div>
                 <CardTitle>Audit log</CardTitle>
-                <CardDescription>Append-only. The latest 50 entries; search and export arrive in Phase 6.</CardDescription>
+                <CardDescription>Append-only. The latest 50 entries here; export the whole log as CSV above (table audit_log).</CardDescription>
               </div>
             </CardHeader>
             <CardContent className="overflow-x-auto">

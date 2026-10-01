@@ -44,50 +44,53 @@ export function ReportChart({ chart, fileBase }: { chart: Chart; fileBase: strin
 
   return (
     <figure className="min-w-0">
-      <svg ref={ref} viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`${chart.title}. Exact figures are in the table below.`}>
-        <text x={0} y={14} className="fill-foreground text-[12px] font-medium">
-          {chart.title}
-        </text>
-        {legend.map((l, i) => (
-          <g key={l} transform={`translate(${W - PAD.r - (legend.length - i) * 96}, 6)`}>
-            <rect width={10} height={10} rx={2} fill={i === 0 ? "var(--chart-in)" : "var(--chart-out)"} />
-            <text x={14} y={9} className="fill-muted-foreground text-[10px]">
-              {l}
-            </text>
-          </g>
-        ))}
-        {ticks.map((t) => (
-          <g key={t}>
-            <line x1={x(t)} x2={x(t)} y1={PAD.t - 4} y2={H - PAD.b} stroke="var(--chart-grid)" strokeWidth={1} />
-            <text x={x(t)} y={H - 6} textAnchor="middle" className="fill-muted-foreground text-[10px]">
-              {short(t)}
-            </text>
-          </g>
-        ))}
-        {rows.map((r, i) => {
-          const y = PAD.t + i * rowH;
-          const barH = pair ? 10 : 14;
-          return (
-            <g key={`${r.label}-${i}`}>
-              <text x={LABEL_W - 8} y={y + rowH / 2 + 3} textAnchor="end" className="fill-foreground text-[11px]">
-                {r.label.length > 26 ? `${r.label.slice(0, 25)}…` : r.label}
+      {/* Below ~560px the chart scrolls sideways rather than shrinking its labels to unreadable sizes. */}
+      <div className="overflow-x-auto">
+        <svg ref={ref} viewBox={`0 0 ${W} ${H}`} className="h-auto w-full min-w-[540px]" role="img" aria-label={`${chart.title}. Exact figures are in the table below.`}>
+          <text x={0} y={14} className="fill-foreground text-[12px] font-medium">
+            {chart.title}
+          </text>
+          {legend.map((l, i) => (
+            <g key={l} transform={`translate(${W - PAD.r - (legend.length - i) * 96}, 6)`}>
+              <rect width={10} height={10} rx={2} fill={i === 0 ? "var(--chart-in)" : "var(--chart-out)"} />
+              <text x={14} y={9} className="fill-muted-foreground text-[10px]">
+                {l}
               </text>
-              <HBar x0={x0} x1={x(r.a)} y={y + (pair ? 4 : (rowH - barH) / 2)} h={barH} fill="var(--chart-in)" />
-              <text x={x(r.a) + 4} y={y + (pair ? 4 : (rowH - barH) / 2) + barH - 2} className="fill-muted-foreground text-[10px]">
-                {short(r.a)}
-              </text>
-              {r.b != null && (
-                <>
-                  <HBar x0={x0} x1={x(r.b)} y={y + 16} h={barH} fill="var(--chart-out)" />
-                  <text x={x(r.b) + 4} y={y + 16 + barH - 2} className="fill-muted-foreground text-[10px]">
-                    {short(r.b)}
-                  </text>
-                </>
-              )}
             </g>
-          );
-        })}
-      </svg>
+          ))}
+          {ticks.map((t) => (
+            <g key={t}>
+              <line x1={x(t)} x2={x(t)} y1={PAD.t - 4} y2={H - PAD.b} stroke="var(--chart-grid)" strokeWidth={1} />
+              <text x={x(t)} y={H - 6} textAnchor="middle" className="fill-muted-foreground text-[10px]">
+                {short(t)}
+              </text>
+            </g>
+          ))}
+          {rows.map((r, i) => {
+            const y = PAD.t + i * rowH;
+            const barH = pair ? 10 : 14;
+            return (
+              <g key={`${r.label}-${i}`}>
+                <text x={LABEL_W - 8} y={y + rowH / 2 + 3} textAnchor="end" className="fill-foreground text-[11px]">
+                  {r.label.length > 26 ? `${r.label.slice(0, 25)}…` : r.label}
+                </text>
+                <HBar x0={x0} x1={x(r.a)} y={y + (pair ? 4 : (rowH - barH) / 2)} h={barH} fill="var(--chart-in)" />
+                <text x={x(r.a) + 4} y={y + (pair ? 4 : (rowH - barH) / 2) + barH - 2} className="fill-muted-foreground text-[10px]">
+                  {short(r.a)}
+                </text>
+                {r.b != null && (
+                  <>
+                    <HBar x0={x0} x1={x(r.b)} y={y + 16} h={barH} fill="var(--chart-out)" />
+                    <text x={x(r.b) + 4} y={y + 16 + barH - 2} className="fill-muted-foreground text-[10px]">
+                      {short(r.b)}
+                    </text>
+                  </>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
       <figcaption className="mt-2 flex flex-wrap justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={() => ref.current && svgToPng(ref.current, `${fileBase}.png`)}>
           <ImageIcon /> PNG

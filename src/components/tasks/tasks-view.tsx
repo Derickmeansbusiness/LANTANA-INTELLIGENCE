@@ -95,22 +95,22 @@ export function TasksView({
       />
       <Tabs value={view} onValueChange={setView} className="space-y-4">
         <TabsList aria-label="Task views">
-          <TabsTrigger value="my-day">
+          <TabsTrigger panelless value="my-day">
             <SunIcon /> My day
           </TabsTrigger>
-          <TabsTrigger value="list">
+          <TabsTrigger panelless value="list">
             <ListIcon /> List
           </TabsTrigger>
-          <TabsTrigger value="board">
+          <TabsTrigger panelless value="board">
             <KanbanSquareIcon /> Board
           </TabsTrigger>
-          <TabsTrigger value="calendar">
+          <TabsTrigger panelless value="calendar">
             <CalendarDaysIcon /> Calendar
           </TabsTrigger>
-          <TabsTrigger value="timeline">
+          <TabsTrigger panelless value="timeline">
             <GanttChartIcon /> Timeline
           </TabsTrigger>
-          <TabsTrigger value="projects">
+          <TabsTrigger panelless value="projects">
             <FolderKanbanIcon /> Projects
           </TabsTrigger>
         </TabsList>

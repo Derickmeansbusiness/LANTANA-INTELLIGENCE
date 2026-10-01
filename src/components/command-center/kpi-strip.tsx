@@ -74,7 +74,7 @@ function KpiTile({ tile, series, index }: { tile: Tile; series: KpiPoint[]; inde
     >
       <p className="truncate text-xs text-muted-foreground" title={tile.note ? `${tile.label} · ${tile.note}` : tile.label}>
         {tile.label}
-        {tile.note && <span className="text-muted-foreground/70"> · {tile.note}</span>}
+        {tile.note && <span className="text-muted-foreground"> · {tile.note}</span>}
       </p>
       {hidden ? (
         <div className="mt-2 flex flex-1 items-center gap-1.5 text-sm text-muted-foreground">

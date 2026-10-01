@@ -149,10 +149,10 @@ export default async function ContractPage({ params }: PageProps<"/contracts/[id
                 <Fact label="Exclusivity">{k.exclusivity ?? "—"}</Fact>
               </dl>
               {k.fee_terms && (
-                <div className="mt-4 text-sm">
+                <dl className="mt-4 text-sm">
                   <dt className="text-xs text-muted-foreground">Fees</dt>
                   <dd className="mt-0.5">{k.fee_terms}</dd>
-                </div>
+                </dl>
               )}
               {k.notes && <p className="mt-4 rounded-md bg-surface-2 p-3 text-sm leading-relaxed text-muted-foreground">{k.notes}</p>}
             </CardContent>

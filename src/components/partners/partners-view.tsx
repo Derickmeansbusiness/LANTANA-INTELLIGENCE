@@ -123,10 +123,10 @@ export function PartnersView({
         className="space-y-4"
       >
         <TabsList aria-label="Directory">
-          <TabsTrigger value="organizations">
+          <TabsTrigger panelless value="organizations">
             <Building2Icon /> Organizations <span className="num text-muted-foreground">{orgs.length}</span>
           </TabsTrigger>
-          <TabsTrigger value="contacts">
+          <TabsTrigger panelless value="contacts">
             <UsersIcon /> Contacts <span className="num text-muted-foreground">{contacts.length}</span>
           </TabsTrigger>
         </TabsList>

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { SHOTS, authFile, noHorizontalScroll, setTheme } from "./helpers";
+import { GUEST, SHOTS, authFile, noHorizontalScroll, setTheme } from "./helpers";
 
 test.use({ storageState: authFile("principal") });
 
@@ -157,4 +157,43 @@ test("login page fits 375px", async ({ browser }) => {
   expect(await noHorizontalScroll(page)).toBe(true);
   await page.screenshot({ path: `${SHOTS}/login-mobile.png` });
   await ctx.close();
+});
+
+test("phase 6 pages at 375px in both themes", async ({ page }) => {
+  const pages = [
+    ["/reports", "reports"],
+    ["/reports/view?pack=monthly_board", "report-board"],
+    ["/data-rooms", "data-rooms"],
+    ["/data-rooms/c6000000-0000-4000-8000-000000000001", "data-room"],
+  ] as const;
+  await page.goto("/reports");
+  for (const theme of ["dark", "light"] as const) {
+    await setTheme(page, theme);
+    for (const [path, name] of pages) {
+      await page.goto(path);
+      await expect(page.locator("h1").first()).toBeVisible();
+      expect(await noHorizontalScroll(page), `${path} ${theme}`).toBe(true);
+      await page.screenshot({ path: `${SHOTS}/mobile-${name}-${theme}.png`, fullPage: true });
+    }
+  }
+  await setTheme(page, "dark");
+});
+
+test.describe("guest portal at 375px", () => {
+  test.use({ storageState: GUEST.auth });
+  test("portal pages fit in both themes", async ({ page }) => {
+    await page.goto("/portal");
+    for (const theme of ["dark", "light"] as const) {
+      await setTheme(page, theme);
+      for (const [path, name] of [
+        ["/portal", "portal"],
+        ["/portal/c6000000-0000-4000-8000-000000000001", "portal-room"],
+      ] as const) {
+        await page.goto(path);
+        await expect(page.locator("h1").first()).toBeVisible();
+        expect(await noHorizontalScroll(page), `${path} ${theme}`).toBe(true);
+        await page.screenshot({ path: `${SHOTS}/mobile-${name}-${theme}.png`, fullPage: true });
+      }
+    }
+  });
 });

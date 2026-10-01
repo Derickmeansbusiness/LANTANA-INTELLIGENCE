@@ -190,7 +190,7 @@ function SidebarBody({
               <item.icon className={cn("size-4 shrink-0", active && "text-gold")} />
               {!collapsed && <span className="truncate">{item.label}</span>}
               {!collapsed && item.phase > CURRENT_PHASE && (
-                <span className="num ml-auto text-[10px] text-muted-foreground/70">P{item.phase}</span>
+                <span className="num ml-auto text-[10px] text-muted-foreground">P{item.phase}</span>
               )}
             </Link>
           );

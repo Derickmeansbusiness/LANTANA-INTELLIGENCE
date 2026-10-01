@@ -22,7 +22,7 @@ export function GeoMap({ rows }: { rows: CountryRow[] }) {
   return (
     <div className="grid gap-4 md:grid-cols-[1fr_12rem]">
       <div className="relative">
-        <svg viewBox={MAP_VIEWBOX} className="h-auto w-full" role="img" aria-label="Map of Africa and the GCC with deals by country">
+        <svg viewBox={MAP_VIEWBOX} className="h-auto w-full" role="group" aria-label="Map of Africa and the GCC with deals by country">
           {MAP_CONTEXT.map((d, i) => (
             <path key={i} d={d} fill="var(--map-land)" opacity={0.45} stroke="none" />
           ))}

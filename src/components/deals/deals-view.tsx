@@ -68,13 +68,13 @@ export function DealsView({
       />
       <Tabs value={tab} onValueChange={setTab} className="space-y-4">
         <TabsList aria-label="Deal views">
-          <TabsTrigger value="board">
+          <TabsTrigger panelless value="board">
             <KanbanSquareIcon /> Board
           </TabsTrigger>
-          <TabsTrigger value="table">
+          <TabsTrigger panelless value="table">
             <TableIcon /> Table
           </TabsTrigger>
-          <TabsTrigger value="forecast">
+          <TabsTrigger panelless value="forecast">
             <ChartColumnIcon /> Forecast
           </TabsTrigger>
         </TabsList>
