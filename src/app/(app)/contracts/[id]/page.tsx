@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangleIcon, BellIcon, ChevronLeftIcon, FileTextIcon } from "lucide-react";
+import { AlertTriangleIcon, BellIcon, ChevronLeftIcon, FileTextIcon, SparklesIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
@@ -11,6 +11,10 @@ import { CONTRACT_TYPE_LABEL } from "@/lib/schemas/contracts";
 import { label } from "@/lib/schemas/common";
 import { getSession } from "@/server/session";
 import { getContract } from "@/server/contracts";
+import { agentAvailable } from "@/server/agent/config";
+import { TEMPLATE_FOR, type ReviewResult } from "@/server/agent/clause-review";
+
+type Finding = ReviewResult["findings"][number];
 import { orgOptions, peopleOptions } from "@/server/lookups";
 import { ContractActions, ObligationsPanel, SurvivalPanel, type Obligation } from "@/components/contracts/contract-panels";
 import { statusVariant, urgency } from "@/components/contracts/format";
@@ -33,11 +37,26 @@ export default async function ContractPage({ params }: PageProps<"/contracts/[id
   const detail = await getContract(db, id);
   if (!detail) notFound();
   const { k, survival, obligations, alerts, linkedDocs, dates, flags, today } = detail;
-  const [orgs, people, docs] = await Promise.all([
+  const [orgs, people, docs, { data: review }] = await Promise.all([
     orgOptions(db),
     peopleOptions(db),
     db.from("documents").select("id, title").is("deleted_at", null).in("doc_type", ["agreement", "lease", "letter"]).order("title"),
+    db
+      .from("clause_reviews")
+      .select("id, summary, findings, created_at, template_id, document:documents(id, title), author:profiles!clause_reviews_created_by_fkey(full_name)")
+      .eq("contract_id", id)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle<{ id: string; summary: string; findings: Finding[]; created_at: string; template_id: string; document: { id: string; title: string } | null; author: { full_name: string } | null }>(),
   ]);
+  const reviewBlocked = !agentAvailable()
+    ? "Needs an Anthropic API key on the server (ANTHROPIC_API_KEY)."
+    : !TEMPLATE_FOR[k.contract_type]
+      ? "Lantana has no standard template for this type of contract yet."
+      : !k.document_id
+        ? "Link the counterparty's document first (Edit → Signed copy in the vault)."
+        : null;
   const archived = Boolean(k.deleted_at);
   const typeLabel = CONTRACT_TYPE_LABEL[k.contract_type as keyof typeof CONTRACT_TYPE_LABEL] ?? label(k.contract_type);
 
@@ -63,6 +82,7 @@ export default async function ContractPage({ params }: PageProps<"/contracts/[id
             <ContractActions
               id={id}
               archived={archived}
+              reviewBlocked={archived ? "Archived contracts can't be reviewed." : reviewBlocked}
               options={{ orgs, people, documents: (docs.data ?? []).map((d) => ({ value: d.id, label: d.title })) }}
               initial={{
                 title: k.title,
@@ -137,6 +157,55 @@ export default async function ContractPage({ params }: PageProps<"/contracts/[id
               {k.notes && <p className="mt-4 rounded-md bg-surface-2 p-3 text-sm leading-relaxed text-muted-foreground">{k.notes}</p>}
             </CardContent>
           </Card>
+
+          {review && (
+            <Card>
+              <CardHeader>
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <SparklesIcon className="size-4 text-gold" /> Clause review
+                  </CardTitle>
+                  <CardDescription>
+                    {review.document?.title ?? "Document"} against Lantana&apos;s standard template · {review.author?.full_name ?? "—"},{" "}
+                    <span className="num">{fmtDubai(review.created_at, "d MMM yyyy, HH:mm")}</span>. Not legal advice: take it to counsel.
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm">{review.summary}</p>
+                {review.findings.length > 0 && (
+                  <ol className="mt-3 space-y-3">
+                    {review.findings.map((f, i) => (
+                      <li key={i} className="rounded-md border p-3 text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant={f.severity === "high" ? "danger" : f.severity === "medium" ? "warning" : "outline"}>{label(f.severity)}</Badge>
+                          <span className="font-medium">{f.clause}</span>
+                        </div>
+                        <p className="mt-1.5">{f.issue}</p>
+                        {(f.their_text || f.lantana_standard) && (
+                          <dl className="mt-2 grid gap-1 text-xs sm:grid-cols-2">
+                            {f.their_text && (
+                              <div className="min-w-0">
+                                <dt className="text-muted-foreground">Their draft</dt>
+                                <dd className="italic">&ldquo;{f.their_text}&rdquo;</dd>
+                              </div>
+                            )}
+                            {f.lantana_standard && (
+                              <div className="min-w-0">
+                                <dt className="text-muted-foreground">Lantana standard</dt>
+                                <dd>{f.lantana_standard}</dd>
+                              </div>
+                            )}
+                          </dl>
+                        )}
+                        {f.suggestion && <p className="mt-2 text-xs text-muted-foreground">Ask for: {f.suggestion}</p>}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>

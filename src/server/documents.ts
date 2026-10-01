@@ -7,6 +7,7 @@ import { chunkText } from "./documents/chunk";
 import { extractText } from "./documents/extract";
 import { ocrAvailable, ocrWithClaude } from "./documents/ocr";
 import { embedTexts, toPgVector } from "./documents/embeddings";
+import { logUsage } from "./agent/usage";
 
 /** Documents vault domain. RLS (and matching storage policies) decide access. */
 
@@ -251,7 +252,7 @@ export async function ingestVersion(db: Db, versionId: string, accessToken: stri
   let ex = await extractText(buf, v.mime_type, v.file_name);
   let ocrUsed = false;
   if (ex.status === "needs_ocr" && ocrAvailable()) {
-    const text = await ocrWithClaude(buf, v.mime_type ?? "");
+    const text = await ocrWithClaude(buf, v.mime_type ?? "", (m) => logUsage(db, "ocr", m));
     if (text) {
       ex = { text, pages: ex.pages, status: "done" };
       ocrUsed = true;

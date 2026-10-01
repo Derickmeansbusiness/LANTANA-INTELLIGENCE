@@ -7,6 +7,7 @@ import { getSession } from "@/server/session";
 import { ingestVersion } from "@/server/documents";
 import { confirmProposal, rejectProposal } from "@/server/agent/proposals";
 import { getThreadView, listThreads, updateThread } from "@/server/agent/threads";
+import { generateBriefing } from "@/server/agent/briefing";
 
 export async function listThreadsAction() {
   return listThreads(await createClient());
@@ -41,4 +42,8 @@ export async function confirmAgentAction(id: string) {
 
 export async function rejectAgentAction(id: string) {
   return rejectProposal(await createClient(), await getSession(), id);
+}
+
+export async function generateBriefingAction(force = false) {
+  return generateBriefing(await createClient(), await getSession(), force);
 }

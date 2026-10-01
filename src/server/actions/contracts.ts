@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import * as contracts from "@/server/contracts";
+import { getSession } from "@/server/session";
+import { reviewContract } from "@/server/agent/clause-review";
 
 function refresh(id?: string) {
   revalidatePath("/contracts");
@@ -49,5 +51,12 @@ export async function setObligationStatusAction(contractId: string, id: string, 
 export async function runAlertsNowAction() {
   const r = await contracts.runAlertsNow(await createClient());
   if (r.ok) revalidatePath("/", "layout");
+  return r;
+}
+
+/** AI clause review: compares the contract's document with Lantana's template. */
+export async function reviewContractAction(contractId: string, documentId?: string) {
+  const r = await reviewContract(await createClient(), await getSession(), { contractId, documentId });
+  if (r.ok) refresh(contractId);
   return r;
 }

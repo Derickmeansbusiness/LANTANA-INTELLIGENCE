@@ -15,6 +15,7 @@ import { FormField } from "@/components/form-field";
 import { fmtDate } from "@/lib/dates";
 import {
   addObligationAction,
+  reviewContractAction,
   addSurvivalAction,
   removeSurvivalAction,
   setContractArchivedAction,
@@ -29,9 +30,12 @@ export function ContractActions({
   archived,
   initial,
   options,
+  reviewBlocked,
 }: {
   id: string;
   archived: boolean;
+  /** Why the AI clause review can't run, or null when it can. */
+  reviewBlocked: string | null;
   initial: ContractFormValues;
   options: { orgs: Opt[]; people: Opt[]; documents: Opt[] };
 }) {
@@ -40,17 +44,7 @@ export function ContractActions({
   const [pending, start] = useTransition();
   return (
     <>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          {/* span keeps the tooltip working on a disabled button */}
-          <span tabIndex={0}>
-            <Button variant="outline" size="sm" disabled>
-              <SparklesIcon /> AI clause review
-            </Button>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>Arrives in Phase 4 with Ask Lantana. It will flag unusual clauses against Lantana&apos;s standard terms.</TooltipContent>
-      </Tooltip>
+      <ClauseReviewButton id={id} blocked={reviewBlocked} />
       {!archived && (
         <Button size="sm" onClick={() => setEdit(true)}>
           <PencilIcon /> Edit
@@ -307,5 +301,37 @@ export function SurvivalPanel({
       )}
       {!endDate && items.length > 0 && <p className="text-xs text-warning">No end date on the contract, so survival periods can&apos;t be tracked yet.</p>}
     </div>
+  );
+}
+
+function ClauseReviewButton({ id, blocked }: { id: string; blocked: string | null }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const button = (
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={Boolean(blocked) || pending}
+      onClick={() =>
+        start(async () => {
+          const r = await reviewContractAction(id);
+          if (!r.ok) return void toast.error(r.error);
+          toast.success(`Review saved: ${r.data.findings.length} finding${r.data.findings.length === 1 ? "" : "s"}.`);
+          router.refresh();
+        })
+      }
+    >
+      {pending ? <Loader2Icon className="animate-spin" /> : <SparklesIcon />} {pending ? "Reviewing…" : "AI clause review"}
+    </Button>
+  );
+  if (!blocked) return button;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {/* span keeps the tooltip working on a disabled button */}
+        <span tabIndex={0}>{button}</span>
+      </TooltipTrigger>
+      <TooltipContent>{blocked}</TooltipContent>
+    </Tooltip>
   );
 }

@@ -13,6 +13,8 @@ import { fmtDate, greeting, resolveRange, todayDubai } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { firstName, getSession } from "@/server/session";
 import { getActivity, getAttention, getDealsByCountry, getKpis, getPipeline, getWeek, hasDemoData } from "@/server/command-center";
+import { getTodaysBriefing } from "@/server/agent/briefing";
+import { agentAvailable } from "@/server/agent/config";
 
 export const metadata: Metadata = { title: "Command Center" };
 
@@ -24,7 +26,7 @@ export default async function CommandCenterPage({ searchParams }: PageProps<"/">
   const session = await getSession();
   const supabase = await createClient();
 
-  const [kpis, pipeline, attention, countries, activity, week, demo, { data: people }] = await Promise.all([
+  const [kpis, pipeline, attention, countries, activity, week, demo, { data: people }, ai] = await Promise.all([
     getKpis(range.from, range.to),
     getPipeline(),
     getAttention(),
@@ -33,6 +35,7 @@ export default async function CommandCenterPage({ searchParams }: PageProps<"/">
     getWeek(today),
     hasDemoData(),
     supabase.from("profiles").select("id, full_name"),
+    getTodaysBriefing(supabase),
   ]);
   const names = Object.fromEntries((people ?? []).map((p) => [p.id, p.full_name]));
   const staff = session.role === "staff";
@@ -61,7 +64,7 @@ export default async function CommandCenterPage({ searchParams }: PageProps<"/">
         </p>
       )}
 
-      <BriefingCard attention={attention} activity={activity} kpis={kpis} week={week.entries} today={today} />
+      <BriefingCard attention={attention} activity={activity} kpis={kpis} week={week.entries} today={today} ai={ai} enabled={agentAvailable()} />
 
       <KpiStrip kpis={kpis} scopeNote={staff ? "your deals" : undefined} />
 

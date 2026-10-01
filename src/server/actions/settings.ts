@@ -23,3 +23,12 @@ export async function wipeDemoData(confirm: string): Promise<WipeResult> {
   revalidatePath("/", "layout");
   return { ok: true, counts: data as Record<string, number> };
 }
+
+/** Run the nightly scan (overdue tasks, stale deals, unpaid invoices) now. Manager+. */
+export async function runNightlyScanAction(): Promise<{ ok: true; sent: number } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("run_nightly_scan_now");
+  if (error) return { ok: false, error: error.code === "42501" ? "Only a manager or principal can run the scan." : error.message };
+  revalidatePath("/", "layout");
+  return { ok: true, sent: data ?? 0 };
+}

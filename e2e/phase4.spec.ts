@@ -12,6 +12,9 @@ async function openPanel(page: Page) {
 
 test.describe.serial("principal · Ask Lantana", () => {
   test.use({ storageState: authFile("principal") });
+  test.beforeAll(async ({ request }) => {
+    await request.delete(MOCK);
+  });
 
   test("answers from the user's own data, with links to the records", async ({ page }) => {
     await page.goto("/");
@@ -25,14 +28,16 @@ test.describe.serial("principal · Ask Lantana", () => {
   });
 
   test("every request opts into server-side fallback and prompt caching", async ({ request }) => {
-    const sent = (await (await request.get(MOCK)).json()) as { beta: string; fallbacks: string; system_cached: boolean; cache_control: unknown }[];
-    expect(sent.length).toBeGreaterThan(0);
-    for (const r of sent.filter((x) => !("structured" in x) || !x["structured" as never])) {
+    const sent = (await (await request.get(MOCK)).json()) as { beta: string; fallbacks: string; system_cached: boolean; cache_control: unknown; tools: string[] }[];
+    const chat = sent.filter((r) => r.tools.length > 0);
+    expect(chat.length).toBeGreaterThan(0);
+    for (const r of sent) {
       expect(r.beta).toContain("server-side-fallback-2026-07-01");
       expect(r.fallbacks).toBe("default");
       expect(r.system_cached).toBe(true);
-      expect(r.cache_control).toEqual({ type: "ephemeral" });
     }
+    // The chat loop also caches the growing conversation.
+    for (const r of chat) expect(r.cache_control).toEqual({ type: "ephemeral" });
   });
 
   test("a write becomes a proposal, and only Confirm creates the task", async ({ page, context }) => {
@@ -102,5 +107,48 @@ test.describe("staff · Ask Lantana", () => {
     await expect(page.getByText("Searching records")).toBeVisible();
     // Staff can see the organization but not the confidential mandate behind it.
     await expect(page.getByRole("link", { name: /Mandate & Non-Circumvention/ })).toHaveCount(0);
+  });
+});
+
+test.describe.serial("principal · briefing, clause review, usage", () => {
+  test.use({ storageState: authFile("principal") });
+
+  test("the morning briefing is written by Ask Lantana and can be regenerated", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByText(/Written by Ask Lantana at \d\d:\d\d/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("Give notice on the Faminas mandate", { exact: false })).toBeVisible();
+    await page.getByRole("button", { name: "Regenerate briefing" }).click();
+    await expect(page.getByText(/Written by Ask Lantana at/)).toBeVisible({ timeout: 30_000 });
+  });
+
+  test("clause review compares the counterparty's draft with Lantana's template", async ({ page }) => {
+    // A mandate in the vault to review, generated from the template and indexed.
+    await page.goto("/documents/templates/mandate");
+    await page.getByLabel("Client (legal name)").fill(`Faminas Investment Group ${run}`);
+    await page.getByLabel("Mandate", { exact: true }).fill("identify and introduce GCC investors for the Morogoro fertilizer blending plant");
+    await page.getByRole("button", { name: "Generate and save" }).click();
+    await expect(page.getByText("Searchable")).toBeVisible({ timeout: 45_000 });
+
+    await page.goto("/contracts/e0000000-0000-4000-8000-000000000002");
+    await page.getByRole("button", { name: "Edit" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Signed copy in the vault").selectOption({ label: `Mandate & Non-Circumvention Agreement — Faminas Investment Group ${run}` });
+    await dialog.getByRole("button", { name: "Save" }).click();
+    await expect(dialog).toHaveCount(0);
+
+    await page.getByRole("button", { name: "AI clause review" }).click();
+    await expect(page.getByText(/Review saved: 2 findings/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("Two material departures. Fix the dispute forum first.")).toBeVisible();
+    await expect(page.getByText("8. Governing law")).toBeVisible();
+    await expect(page.getByText("Not legal advice", { exact: false })).toBeVisible();
+  });
+
+  test("Settings shows this month's usage", async ({ page }) => {
+    await page.goto("/settings");
+    await expect(page.getByText("Ask Lantana usage this month")).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Morning briefing" }).first()).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Clause review" }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Run nightly scan now" }).click();
+    await expect(page.getByText(/items? flagged\.|Nothing new to flag/)).toBeVisible();
   });
 });

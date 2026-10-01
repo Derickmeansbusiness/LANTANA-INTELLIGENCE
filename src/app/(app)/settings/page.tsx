@@ -6,9 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 import { fmtDubai } from "@/lib/dates";
 import { getSession } from "@/server/session";
 import { WipeDemo } from "./wipe-demo";
-import { RunAlerts } from "./run-alerts";
+import { RunAlerts, RunScan } from "./run-alerts";
 
 export const metadata: Metadata = { title: "Settings" };
+
+const USAGE_KIND: Record<string, string> = { chat: "Chat", briefing: "Morning briefing", clause_review: "Clause review", ocr: "OCR" };
 
 const ROLE_TONE = { principal: "gold", manager: "info", staff: "default", external: "outline" } as const;
 
@@ -23,6 +25,7 @@ export default async function SettingsPage() {
       : Promise.resolve({ data: null }),
     session.isManagerPlus ? supabase.rpc("demo_data_counts") : Promise.resolve({ data: null }),
   ]);
+  const { data: usage } = await supabase.from("agent_usage_month").select("*");
   const names = Object.fromEntries((people ?? []).map((p) => [p.id, p.full_name]));
   const counts = (demo.data ?? {}) as Record<string, number>;
   const demoTotal = Object.values(counts).reduce((a, b) => a + Number(b), 0);
@@ -103,13 +106,17 @@ export default async function SettingsPage() {
           <Card>
             <CardHeader>
               <div>
-                <CardTitle>Expiry alerts</CardTitle>
+                <CardTitle>Alerts and scans</CardTitle>
                 <CardDescription>
-                  Runs every day at 07:15 Dubai: contract ends, notice deadlines, survival periods, document expiries and confirmed compliance dates, at 90, 60, 30
-                  and 7 days. Each alert goes out once per threshold.
+                  Every day at 06:45 Dubai the nightly scan flags overdue tasks, deals with no movement for 14 days and unpaid invoices. At 07:15 the expiry
+                  alerts cover contract ends, notice deadlines, survival periods, document expiries and confirmed compliance dates, at 90, 60, 30 and 7 days.
+                  Mondays at 07:00 everyone gets a digest of their week. Each item is flagged once.
                 </CardDescription>
               </div>
-              <RunAlerts />
+              <div className="flex flex-wrap gap-2">
+                <RunScan />
+                <RunAlerts />
+              </div>
             </CardHeader>
           </Card>
         )}
@@ -137,6 +144,50 @@ export default async function SettingsPage() {
             </CardContent>
           </Card>
         )}
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>Ask Lantana usage this month</CardTitle>
+              <CardDescription>
+                Tokens sent to and from the model, per person and feature. {session.isPrincipal ? "You see everyone's." : "You see your own."} Cached input is
+                billed at a fraction of normal input.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!usage?.length ? (
+              <p className="text-sm text-muted-foreground">No usage yet this month.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-xs text-muted-foreground">
+                      <th className="py-1.5 pr-3 font-medium">Person</th>
+                      <th className="py-1.5 pr-3 font-medium">Feature</th>
+                      <th className="py-1.5 pr-3 text-right font-medium">Calls</th>
+                      <th className="py-1.5 pr-3 text-right font-medium">Input</th>
+                      <th className="py-1.5 pr-3 text-right font-medium">Cached input</th>
+                      <th className="py-1.5 text-right font-medium">Output</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usage.map((u) => (
+                      <tr key={`${u.user_id}-${u.kind}`} className="border-b last:border-0">
+                        <td className="py-1.5 pr-3">{u.full_name}</td>
+                        <td className="py-1.5 pr-3">{USAGE_KIND[u.kind ?? ""] ?? u.kind}</td>
+                        <td className="num py-1.5 pr-3 text-right">{u.calls}</td>
+                        <td className="num py-1.5 pr-3 text-right">{Number(u.input_tokens ?? 0).toLocaleString("en-US")}</td>
+                        <td className="num py-1.5 pr-3 text-right">{Number(u.cache_read_tokens ?? 0).toLocaleString("en-US")}</td>
+                        <td className="num py-1.5 text-right">{Number(u.output_tokens ?? 0).toLocaleString("en-US")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {session.isPrincipal && (
           <Card>
