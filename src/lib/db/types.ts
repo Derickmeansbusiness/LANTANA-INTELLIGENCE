@@ -61,6 +61,94 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"agent_actions": {
+                  Row: {
+                    "created_at": string,"decided_at": string | null,"error": string | null,"executed_at": string | null,"id": string,"payload": NonNullable<Json>,"preview": NonNullable<Json>,"result": Json | null,"status": string,"summary": string,"thread_id": string | null,"tool": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"decided_at"?: string | null,"error"?: string | null,"executed_at"?: string | null,"id"?: string,"payload": NonNullable<Json>,"preview"?: NonNullable<Json>,"result"?: Json | null,"status"?: string,"summary": string,"thread_id"?: string | null,"tool": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"decided_at"?: string | null,"error"?: string | null,"executed_at"?: string | null,"id"?: string,"payload"?: NonNullable<Json>,"preview"?: NonNullable<Json>,"result"?: Json | null,"status"?: string,"summary"?: string,"thread_id"?: string | null,"tool"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "agent_actions_thread_id_fkey"
+      columns: ["thread_id"]
+isOneToOne: false
+      referencedRelation: "agent_threads"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "agent_actions_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"agent_messages": {
+                  Row: {
+                    "content": NonNullable<Json>,"created_at": string,"id": number,"model": string | null,"role": string,"thread_id": string
+                  }
+                  Insert: {
+                    "content": NonNullable<Json>,"created_at"?: string,"id"?: never,"model"?: string | null,"role": string,"thread_id": string
+                  }
+                  Update: {
+                    "content"?: NonNullable<Json>,"created_at"?: string,"id"?: never,"model"?: string | null,"role"?: string,"thread_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "agent_messages_thread_id_fkey"
+      columns: ["thread_id"]
+isOneToOne: false
+      referencedRelation: "agent_threads"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"agent_threads": {
+                  Row: {
+                    "created_at": string,"deleted_at": string | null,"entity_id": string | null,"entity_type": string | null,"id": string,"pinned": boolean,"title": string,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"deleted_at"?: string | null,"entity_id"?: string | null,"entity_type"?: string | null,"id"?: string,"pinned"?: boolean,"title"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"deleted_at"?: string | null,"entity_id"?: string | null,"entity_type"?: string | null,"id"?: string,"pinned"?: boolean,"title"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "agent_threads_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"agent_usage": {
+                  Row: {
+                    "cache_read_tokens": number,"cache_write_tokens": number,"created_at": string,"id": number,"input_tokens": number,"kind": string,"model": string,"output_tokens": number,"thread_id": string | null,"user_id": string
+                  }
+                  Insert: {
+                    "cache_read_tokens"?: number,"cache_write_tokens"?: number,"created_at"?: string,"id"?: never,"input_tokens"?: number,"kind": string,"model": string,"output_tokens"?: number,"thread_id"?: string | null,"user_id"?: string
+                  }
+                  Update: {
+                    "cache_read_tokens"?: number,"cache_write_tokens"?: number,"created_at"?: string,"id"?: never,"input_tokens"?: number,"kind"?: string,"model"?: string,"output_tokens"?: number,"thread_id"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "agent_usage_thread_id_fkey"
+      columns: ["thread_id"]
+isOneToOne: false
+      referencedRelation: "agent_threads"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "agent_usage_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"alerts_sent": {
                   Row: {
                     "entity_id": string,"entity_type": string,"id": number,"kind": string,"sent_at": string,"target_date": string,"threshold_days": number
@@ -110,6 +198,62 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "currencies"
       referencedColumns: ["code"]
+    }
+                  ]
+                },"briefings": {
+                  Row: {
+                    "briefing_date": string,"content": string,"created_at": string,"facts": NonNullable<Json>,"id": string,"model": string | null,"user_id": string
+                  }
+                  Insert: {
+                    "briefing_date"?: string,"content": string,"created_at"?: string,"facts"?: NonNullable<Json>,"id"?: string,"model"?: string | null,"user_id"?: string
+                  }
+                  Update: {
+                    "briefing_date"?: string,"content"?: string,"created_at"?: string,"facts"?: NonNullable<Json>,"id"?: string,"model"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "briefings_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"clause_reviews": {
+                  Row: {
+                    "contract_id": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"document_id": string | null,"findings": NonNullable<Json>,"id": string,"is_demo": boolean,"model": string | null,"summary": string,"template_id": string,"version_id": string | null
+                  }
+                  Insert: {
+                    "contract_id": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"document_id"?: string | null,"findings"?: NonNullable<Json>,"id"?: string,"is_demo"?: boolean,"model"?: string | null,"summary": string,"template_id": string,"version_id"?: string | null
+                  }
+                  Update: {
+                    "contract_id"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"document_id"?: string | null,"findings"?: NonNullable<Json>,"id"?: string,"is_demo"?: boolean,"model"?: string | null,"summary"?: string,"template_id"?: string,"version_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "clause_reviews_contract_id_fkey"
+      columns: ["contract_id"]
+isOneToOne: false
+      referencedRelation: "contracts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "clause_reviews_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "clause_reviews_document_id_fkey"
+      columns: ["document_id"]
+isOneToOne: false
+      referencedRelation: "documents"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "clause_reviews_version_id_fkey"
+      columns: ["version_id"]
+isOneToOne: false
+      referencedRelation: "document_versions"
+      referencedColumns: ["id"]
     }
                   ]
                 },"company": {
@@ -1306,7 +1450,20 @@ isOneToOne: false
                 }
           }
           Views: {
-            "v_attention_queue": {
+            "agent_usage_month": {
+                  Row: {
+                    "cache_read_tokens": number | null,"cache_write_tokens": number | null,"calls": number | null,"full_name": string | null,"input_tokens": number | null,"kind": string | null,"output_tokens": number | null,"user_id": string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "agent_usage_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"v_attention_queue": {
                   Row: {
                     "deal_id": string | null,"detail": string | null,"due_date": string | null,"entity_id": string | null,"entity_type": string | null,"is_demo": boolean | null,"kind": string | null,"severity": string | null,"title": string | null
                   }
@@ -1356,6 +1513,9 @@ isOneToOne: false
 { Args: { "p_id": string }; Returns: string
                            },
 "run_expiry_alerts_now":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"run_nightly_scan_now":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "search_documents":
