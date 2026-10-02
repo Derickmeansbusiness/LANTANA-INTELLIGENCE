@@ -12,11 +12,11 @@ import { DataTable } from "@/components/data-table/data-table";
 import type { SavedView } from "@/components/data-table/types";
 import { PageHeader } from "@/components/page-header";
 import { formatCompact } from "@/lib/money";
-import { relativeTime } from "@/lib/dates";
 import { ORG_TYPES, SECTORS, label } from "@/lib/schemas/common";
 import type { ContactRow, OrgRow } from "@/server/partners";
 import { OrgFormDialog } from "./org-form-dialog";
 import { ContactFormDialog } from "./contact-form-dialog";
+import { RelativeTime } from "@/components/relative-time";
 
 type Opt = { value: string; label: string };
 
@@ -58,7 +58,7 @@ const orgColumns: ColumnDef<OrgRow, unknown>[] = [
     header: "Last contact",
     sortUndefined: "last",
     meta: { label: "Last contact" },
-    cell: ({ getValue }) => <span className="num text-muted-foreground">{getValue() ? relativeTime(getValue() as string) : "Never"}</span>,
+    cell: ({ getValue }) => <span className="num text-muted-foreground">{getValue() ? <RelativeTime ts={getValue() as string} /> : "Never"}</span>,
   },
   { accessorKey: "status", header: "Status", meta: { label: "Status", csv: (r) => label(r.status) }, cell: ({ getValue }) => label(String(getValue())) },
 ];

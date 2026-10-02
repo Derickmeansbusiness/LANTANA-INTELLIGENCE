@@ -13,7 +13,7 @@ test.describe("principal", () => {
     await expect(page.getByText("Morning briefing")).toBeVisible();
     await expect(page.getByText("Counterparty signing authority not confirmed").first()).toBeVisible();
     await expect(page.getByText("Last day to give notice").first()).toBeVisible();
-    await expect(page.getByRole("img", { name: /Map of Africa/ })).toBeVisible();
+    await expect(page.getByRole("group", { name: /Map of Africa/ })).toBeVisible();
     await expect(page.getByText("Pipeline by stage")).toBeVisible();
     await expect(page.getByText("This week")).toBeVisible();
     await page.waitForTimeout(900); // let count-ups settle for the screenshot
@@ -65,15 +65,20 @@ test.describe("principal", () => {
 
   test("settings shows audit log and demo data", async ({ page }) => {
     await page.goto("/settings");
-    await expect(page.getByText("Audit log")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Audit log" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Backup and export" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Wipe demo data" })).toBeEnabled();
     await expect(page.getByRole("cell", { name: "Maimouna Baba Danpullo" }).first()).toBeVisible();
   });
 
   test("every module page renders", async ({ page }) => {
-    for (const path of ["/reports"]) {
+    // Phase 6 built the last placeholder (Reports); every nav entry is a real page now.
+    for (const [path, title] of [
+      ["/reports", "Reports"],
+      ["/data-rooms", "Data rooms"],
+    ] as const) {
       await page.goto(path);
-      await expect(page.getByRole("heading", { name: /Arrives in Phase \d/ }).filter({ visible: true })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
     }
   });
 });
@@ -87,7 +92,8 @@ test.describe("manager", () => {
     await expect(kpis.getByText("Principals only")).toBeVisible();
     await expect(kpis.getByText("Management only")).toHaveCount(0);
     await page.goto("/settings");
-    await expect(page.getByText("Audit log")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Audit log" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Backup and export" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Wipe demo data" })).toBeDisabled();
   });
 });
@@ -111,12 +117,10 @@ test.describe("staff", () => {
   });
 
   test("direct URL to a management module is refused", async ({ page }) => {
-    for (const path of ["/finance", "/compliance", "/people/payroll"]) {
+    for (const path of ["/finance", "/compliance", "/people/payroll", "/reports", "/data-rooms"]) {
       await page.goto(path);
       await expect(page.getByRole("heading", { name: "Not found" }).or(page.getByText("Payroll is visible to principals only."))).toBeVisible();
     }
-    await page.goto("/reports");
-    await expect(page.getByText("Your role doesn't have access to this module")).toBeVisible();
   });
 
   test("record sheet refuses a contract the staff user can't see", async ({ page }) => {

@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { relativeTime } from "@/lib/dates";
 import { Avatar } from "@/components/ui/avatar";
 import type { ActivityRow } from "@/server/command-center";
+import { RelativeTime } from "@/components/relative-time";
 
 const LINKABLE = new Set(["deal", "task", "contract", "document", "organization"]);
 
@@ -63,7 +63,7 @@ export function ActivityFeed({ initial, names }: { initial: ActivityRow[]; names
               ) : (
                 body
               )}
-              <p className="num mt-0.5 text-[11px] text-muted-foreground">{relativeTime(r.occurred_at)}</p>
+              <p className="num mt-0.5 text-[11px] text-muted-foreground"><RelativeTime ts={r.occurred_at} /></p>
             </div>
           </li>
         );

@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BellIcon, CheckCheckIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { relativeTime } from "@/lib/dates";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { entityHref } from "@/lib/entity-href";
+import { RelativeTime } from "@/components/relative-time";
 
 type Notification = { id: string; title: string; body: string | null; created_at: string; read_at: string | null; entity_type: string | null; entity_id: string | null };
 
@@ -73,7 +73,7 @@ export function NotificationsBell({ userId }: { userId: string }) {
               <>
                 <p className="text-sm">{n.title}</p>
                 {n.body && <p className="mt-0.5 text-xs text-muted-foreground">{n.body}</p>}
-                <p className="mt-1 text-[11px] text-muted-foreground">{relativeTime(n.created_at)}</p>
+                <p className="mt-1 text-[11px] text-muted-foreground"><RelativeTime ts={n.created_at} /></p>
               </>
             );
             return (

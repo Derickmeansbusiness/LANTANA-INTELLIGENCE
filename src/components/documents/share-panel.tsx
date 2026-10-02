@@ -10,8 +10,9 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { FormField } from "@/components/form-field";
-import { fmtDubai, relativeTime } from "@/lib/dates";
+import { fmtDubai } from "@/lib/dates";
 import { createShareAction, revokeShareAction } from "@/server/actions/documents";
+import { RelativeTime } from "@/components/relative-time";
 
 export type ShareRow = {
   id: string;
@@ -66,7 +67,13 @@ export function SharePanel({ docId, shares, canShare, reason, now }: { docId: st
                     {s.view_count}
                     {s.max_views != null ? ` of ${s.max_views}` : ""}
                   </span>{" "}
-                  views{lastOk ? ` · last ${relativeTime(lastOk.viewed_at)}` : ""}
+                  views
+                  {lastOk && (
+                    <>
+                      {" "}
+                      · last <RelativeTime ts={lastOk.viewed_at} />
+                    </>
+                  )}
                   {refused > 0 && <span className="text-warning"> · {refused} refused</span>}
                   <br />
                   {st.live ? "Expires" : "Expired"} <span className="num">{fmtDubai(s.expires_at, "d MMM, HH:mm")}</span> · by {s.creator?.full_name ?? "—"}

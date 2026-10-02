@@ -34,13 +34,19 @@ export function AgentPanel({
   const scroller = useRef<HTMLDivElement>(null);
   const ctx = () => contextFrom(pathname, new URLSearchParams(search.toString()));
 
-  // A question typed into Ctrl+K arrives here once.
+  // A question typed into Ctrl+K arrives here once. The panel now mounts with
+  // the question already set, so guard against the effect running twice.
+  const taken = useRef<string | null>(null);
   useEffect(() => {
-    if (open && question && enabled) {
+    if (open && question && enabled && taken.current !== question) {
+      taken.current = question;
       onQuestionTaken();
       void send(question, contextFrom(pathname, new URLSearchParams(search.toString())));
     }
   }, [open, question, enabled, onQuestionTaken, send, pathname, search]);
+  useEffect(() => {
+    if (!question) taken.current = null;
+  }, [question]);
 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight });

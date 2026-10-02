@@ -9,12 +9,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { NativeSelect } from "@/components/ui/native-select";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { relativeTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { listThreadsAction, updateThreadAction } from "@/server/actions/agent";
 import type { ThreadSummary } from "@/server/agent/view-types";
 import { ChatMessages, Composer, EmptyState } from "./chat";
 import { useAgent } from "./use-agent";
+import { RelativeTime } from "@/components/relative-time";
 
 export function AgentWorkspace({ threads: initial, enabled }: { threads: ThreadSummary[]; enabled: boolean }) {
   const router = useRouter();
@@ -78,7 +78,7 @@ export function AgentWorkspace({ threads: initial, enabled }: { threads: ThreadS
                 {t.pinned ? <PinIcon className="mt-0.5 size-3.5 shrink-0" /> : <MessageSquareIcon className="mt-0.5 size-3.5 shrink-0" />}
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2">{t.title}</span>
-                  <span className="text-xs opacity-70">{relativeTime(t.updated_at)}</span>
+                  <span className="text-xs opacity-70"><RelativeTime ts={t.updated_at} /></span>
                 </span>
               </button>
               <DropdownMenu>

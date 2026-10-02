@@ -16,7 +16,7 @@ import { FormField } from "@/components/form-field";
 import { DataTable } from "@/components/data-table/data-table";
 import type { SavedView } from "@/components/data-table/types";
 import { PageHeader } from "@/components/page-header";
-import { fmtDate, relativeTime } from "@/lib/dates";
+import { fmtDate } from "@/lib/dates";
 import { CONFIDENTIALITY, DOC_STATUSES, DOC_TYPES } from "@/lib/schemas/documents";
 import { label } from "@/lib/schemas/common";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ import { createFolderAction, searchDocumentsAction } from "@/server/actions/docu
 import type { DocRow, LinkTarget } from "@/server/documents";
 import { UploadDialog } from "./upload-dialog";
 import { confVariant, fmtSize } from "./format";
+import { RelativeTime } from "@/components/relative-time";
 
 type SearchHit = { document_id: string; title: string; doc_type: string; status: string; snippet: string | null; matched: string };
 
@@ -92,7 +93,7 @@ const columns: ColumnDef<DocRow, unknown>[] = [
     accessorKey: "updated_at",
     header: "Updated",
     meta: { label: "Last updated" },
-    cell: ({ getValue }) => <span className="num text-muted-foreground">{relativeTime(getValue() as string)}</span>,
+    cell: ({ getValue }) => <span className="num text-muted-foreground"><RelativeTime ts={getValue() as string} /></span>,
   },
 ];
 

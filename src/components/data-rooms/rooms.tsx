@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/form-field";
-import { fmtDate, fmtDubai, relativeTime } from "@/lib/dates";
+import { fmtDate, fmtDubai } from "@/lib/dates";
 import {
   addMemberAction,
   addRoomDocumentAction,
@@ -23,6 +23,7 @@ import {
   revokeMemberAction,
   saveRoomAction,
 } from "@/server/actions/data-rooms";
+import { RelativeTime } from "@/components/relative-time";
 
 type Opt = { value: string; label: string };
 type Room = {
@@ -94,7 +95,13 @@ export function RoomsList({ rooms, deals, orgs }: { rooms: Room[]; deals: Opt[];
                   </div>
                 </dl>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  {r.allow_download ? "View and download" : "View only"} · {r.last_activity ? `last activity ${relativeTime(r.last_activity)}` : "no activity yet"}
+                  {r.allow_download ? "View and download" : "View only"} · {r.last_activity ? (
+                    <>
+                      last activity <RelativeTime ts={r.last_activity} />
+                    </>
+                  ) : (
+                    "no activity yet"
+                  )}
                   {r.is_demo && " · demo"}
                 </p>
               </CardContent>

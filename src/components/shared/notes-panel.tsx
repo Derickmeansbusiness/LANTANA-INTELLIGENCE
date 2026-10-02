@@ -6,9 +6,9 @@ import { ArchiveIcon, PinIcon, PinOffIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { relativeTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { addNoteAction, updateNoteAction } from "@/server/actions/relationships";
+import { RelativeTime } from "@/components/relative-time";
 
 export type NoteItem = { id: string; body: string; pinned: boolean; created_at: string; author: { full_name: string } | null };
 
@@ -47,7 +47,7 @@ export function NotesPanel({ entityType, entityId, notes }: { entityType: "deal"
               <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
                 {n.pinned && <PinIcon className="size-3 text-gold" />}
                 <span>
-                  {n.author?.full_name ?? "Someone"} · {relativeTime(n.created_at)}
+                  {n.author?.full_name ?? "Someone"} · <RelativeTime ts={n.created_at} />
                 </span>
                 <span className="ml-auto flex gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
                   <Button

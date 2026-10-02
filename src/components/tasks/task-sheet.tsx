@@ -13,7 +13,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { fmtDate, relativeTime, todayDubai } from "@/lib/dates";
+import { fmtDate, todayDubai } from "@/lib/dates";
 import { TASK_STATUSES, RECURRENCES } from "@/lib/schemas/tasks";
 import { cn } from "@/lib/utils";
 import {
@@ -30,6 +30,7 @@ import {
 import type { TaskRow } from "@/server/tasks";
 import { PRIORITY_LABEL, PRIORITY_TONE, STATUS_LABEL } from "./labels";
 import { TaskFormDialog, loadTaskOptions } from "./task-form-dialog";
+import { RelativeTime } from "@/components/relative-time";
 
 type Detail = NonNullable<Awaited<ReturnType<typeof getTaskDetailAction>>>;
 
@@ -206,7 +207,7 @@ export function TaskSheet() {
                   {detail.comments.map((c) => (
                     <li key={c.id} className="text-sm">
                       <p className="text-xs text-muted-foreground">
-                        <span className="text-foreground">{c.author?.full_name ?? "Someone"}</span> · {relativeTime(c.created_at)}
+                        <span className="text-foreground">{c.author?.full_name ?? "Someone"}</span> · <RelativeTime ts={c.created_at} />
                       </p>
                       <p className="mt-0.5 leading-relaxed whitespace-pre-wrap">{c.body}</p>
                     </li>
