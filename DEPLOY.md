@@ -45,6 +45,8 @@ Environment variables:
 | `ANTHROPIC_API_KEY` | optional; without it Ask Lantana, the AI briefing, clause review and OCR show as unavailable and the rule-based text is used |
 | `ANTHROPIC_MODEL`, `ANTHROPIC_MODEL_BACKGROUND` | the chat and background model IDs |
 
+On Vercel, `next.config.ts` falls back to the hosted project's URL and publishable key when the first two variables are missing (both are public values), and `NEXT_PUBLIC_SITE_URL` defaults to the project's production address (`VERCEL_PROJECT_PRODUCTION_URL`). Setting them explicitly still wins. Elsewhere they are required at build time, because `NEXT_PUBLIC_` values are compiled into the pages.
+
 **Do not set the service-role or secret key on the web server.** No request path uses it. RLS under each user's own session is the security boundary.
 
 Route handlers stream PDFs and the JSON backup, so allow responses of at least 60 s (`maxDuration` is set to 300 s on the backup and agent routes).
