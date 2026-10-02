@@ -145,7 +145,8 @@ test.describe.serial("principal · compliance", () => {
     await page.goto("/compliance/records");
     for (const no of ["7015890", "45033268", "47027560"]) await expect(page.getByText(no, { exact: true })).toBeVisible();
     await page.goto("/compliance");
-    await expect(page.getByText("RAKEZ licence renewal (7015890, 45033268, 47027560)")).toBeVisible();
+    // Listed once in the calendar and, within 90 days of the due date, again under "due soon".
+    await expect(page.getByText("RAKEZ licence renewal (7015890, 45033268, 47027560)").filter({ visible: true }).first()).toBeVisible();
   });
 
   test("a principal confirms an obligation, which then joins the calendar", async ({ page }) => {
