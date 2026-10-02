@@ -94,7 +94,7 @@ export function Invites({ invites, isPrincipal }: { invites: Invite[]; isPrincip
             }
             setErrors({});
             setV({ email: "", full_name: "", title: "", role: roles[0] });
-            toast.success("Invite created. They can now sign in with a one-time email link.");
+            toast.success("Invite created. Email sign-in is off for now, so set up their login before they sign in.");
             router.refresh();
           });
         }}
@@ -118,7 +118,7 @@ export function Invites({ invites, isPrincipal }: { invites: Invite[]; isPrincip
           <Input id="inv-title" value={v.title} onChange={(e) => setV({ ...v, title: e.target.value })} />
         </FormField>
         <div className="flex items-center justify-between gap-3 sm:col-span-2">
-          <p className="text-xs text-muted-foreground">Invites last 14 days. Nothing is emailed by the app: tell them to sign in at the login page with this address.</p>
+          <p className="text-xs text-muted-foreground">Invites last 14 days. Email sign-in is off for now: a principal sets the new person’s password in Supabase, then they sign in with it.</p>
           <Button type="submit" size="sm" disabled={pending}>
             <MailPlusIcon /> Invite
           </Button>

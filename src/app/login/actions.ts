@@ -4,32 +4,13 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
-export type LoginState = { error?: string; sent?: string } | undefined;
+export type LoginState = { error?: string } | undefined;
 
 const emailSchema = z.string().trim().toLowerCase().email("Enter a valid email address");
 
 function safeNext(next: FormDataEntryValue | null) {
   const n = typeof next === "string" ? next : "";
   return n.startsWith("/") && !n.startsWith("//") ? n : "/";
-}
-
-export async function sendMagicLink(_: LoginState, form: FormData): Promise<LoginState> {
-  const email = emailSchema.safeParse(form.get("email"));
-  if (!email.success) return { error: email.error.issues[0]?.message };
-  const next = safeNext(form.get("next"));
-  const supabase = await createClient();
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const { error } = await supabase.auth.signInWithOtp({
-    email: email.data,
-    // An invited address gets its account on first sign-in; the database
-    // refuses everyone else (private.handle_new_user), so this stays invite-only.
-    options: { shouldCreateUser: true, emailRedirectTo: `${site}/auth/callback?next=${encodeURIComponent(next)}` },
-  });
-  // Don't reveal whether the address has an account or an invite.
-  if (error && !/signups not allowed|not found|invite-only|database error/i.test(error.message)) {
-    return { error: "Couldn't send the link just now. Try again in a minute." };
-  }
-  return { sent: email.data };
 }
 
 const passwordSchema = z.object({ email: emailSchema, password: z.string().min(8, "Password is at least 8 characters") });

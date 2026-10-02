@@ -53,7 +53,7 @@ export function RoomsList({ rooms, deals, orgs }: { rooms: Room[]; deals: Opt[];
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Guests sign in with a one-time email link and see only the rooms they’re in. Every file is a watermarked PDF stamped with their email and the time, and every open is
+          Guests sign in with their own account and see only the rooms they’re in. Every file is a watermarked PDF stamped with their email and the time, and every open is
           logged.
         </p>
         <Button size="sm" onClick={() => setCreating(true)}>
@@ -351,7 +351,7 @@ export function RoomDetail({
           <CardHeader>
             <div>
               <CardTitle>Guests</CardTitle>
-              <CardDescription>Adding someone without an account sends nothing yet: they sign in at the login page with a one-time email link.</CardDescription>
+              <CardDescription>Adding someone without an account sends nothing yet. Email sign-in is off for now, so a principal sets up their login.</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">

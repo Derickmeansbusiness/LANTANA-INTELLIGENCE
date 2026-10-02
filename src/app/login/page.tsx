@@ -19,7 +19,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         </div>
         <div className="rounded-lg border bg-surface p-6">
           <h1 className="font-display text-2xl">Sign in</h1>
-          <p className="mt-1 mb-6 text-sm text-muted-foreground">Access is by invitation from a principal.</p>
+          <p className="mt-1 mb-6 text-sm text-muted-foreground">Access is by invitation from a principal. Forgot your password? Ask a principal to reset it.</p>
           {error === "link" && (
             <p role="alert" className="mb-4 rounded-md border border-danger/40 bg-danger/10 p-2.5 text-sm text-danger">
               That sign-in link has expired or was already used. Request a new one.
