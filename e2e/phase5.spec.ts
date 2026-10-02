@@ -83,11 +83,12 @@ test.describe.serial("principal · finance", () => {
 
   test("budget vs actual takes a new budget", async ({ page }) => {
     await page.goto("/finance/budgets");
-    const travel = page.getByLabel("Budget for Travel");
+    // Visible copy only (see phase2 spec: React's hidden streaming buffer can hold a second copy for a moment).
+    const travel = page.getByLabel("Budget for Travel").filter({ visible: true });
     await travel.fill("12000");
     await travel.press("Enter");
     await page.reload();
-    await expect(page.getByLabel("Budget for Travel")).toHaveValue("12000");
+    await expect(page.getByLabel("Budget for Travel").filter({ visible: true })).toHaveValue("12000");
   });
 });
 

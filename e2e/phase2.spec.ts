@@ -220,7 +220,8 @@ test.describe("principal · tasks", () => {
       await expect(page.getByRole("tab", { selected: true })).toBeVisible();
     }
     await page.goto("/tasks/projects/b1000000-0000-4000-8000-000000000001");
-    await expect(page.getByText("Supply contract signed")).toBeVisible();
+    // Visible copy only: while a streamed Suspense segment is being swapped in, React briefly keeps it in a hidden buffer too.
+    await expect(page.getByText("Supply contract signed").filter({ visible: true })).toBeVisible();
   });
 });
 
